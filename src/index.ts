@@ -7,30 +7,66 @@ import {Chess, PartialMove, PieceSymbol} from 'chess.ts';
 
 import * as chessboard from 'chessboardjs';
 
+type PrepMove = {
+  algebraic: string;
+  recommended: boolean;
+  next: PrepNode;
+}
+
 type PrepNode = {
   expanded: boolean;
-  recommended: boolean;
-  moves: Record<string, PrepNode>;
+  moves: PrepMove[];
+}
+
+function nodeGetMoveIx(node: PrepNode, algebraic: string): number | null {
+  for (var i = 0; i < node.moves.length; ++i) {
+    if (node.moves[i].algebraic == algebraic) {
+      return i;
+    }
+  }
+  return null;
+}
+
+function nodeGetMove(node: PrepNode, algebraic: string): PrepMove | null {
+  let ix = nodeGetMoveIx(node, algebraic);
+  if (ix == null) {
+    return null;
+  }
+  return node.moves[ix];
 }
 
 class PrepView {
-  public root: PrepNode = {expanded: true, recommended: true, moves: {}};
+  public root: PrepNode = {expanded: true, moves: []};
   public focus: string[] = [];
 
   constructor() {
-    this.root.moves['e4'] = {expanded: false, recommended: true, moves: {}};
-    this.root.moves['d4'] = {expanded: true, recommended: true, moves: {'Nf6': {expanded: false, recommended: false, moves: {}}}};
-    this.focus = ['e4'];
+    // this.root.moves['e4'] = {expanded: false, recommended: true, moves: {}};
+    // this.root.moves['d4'] = {expanded: true, recommended: true, moves: {'Nf6': {expanded: false, recommended: false, moves: {}}}};
+    // this.focus = ['e4'];
+  }
+
+  getNodeAfterMoves(moves: string[]): PrepNode | null {
+    var node = this.root;
+    for (let move of moves) {
+      let pmove = nodeGetMove(node, move);
+      if (pmove == null) {
+        return null;
+      }
+      node = pmove.next;
+    }
+    return node;
   }
 
   expandInto(moves: string[]) {
     var node = this.root;
     for (let move of moves) {
       node.expanded = true;
-      if (node.moves[move] == null) {
-        node.moves[move] = {expanded: false, recommended: false, moves: {}};
+      let pmove = nodeGetMove(node, move);
+      if (pmove == null) {
+        pmove = {algebraic: move, recommended: false, next: {expanded: false, moves: []}};
+        node.moves.push(pmove);
       }
-      node = node.moves[move];
+      node = pmove.next;
     }
   }
 
@@ -40,19 +76,18 @@ class PrepView {
       return res;
     }
     let ul = $('<ul class="prep-ul">');
-    for (var move in node.moves) {
-      var child = node.moves[move];
+    for (let move of node.moves) {
       let li = $('<li class="prep-li">');
       var history2 = history;
 
       while (true) {
-        let moveText = $('<span class="prep-move">').text(move);
+        let moveText = $('<span class="prep-move">').text(move.algebraic);
         li.append(moveText);
-        history2 = [...history2, move];
+        history2 = [...history2, move.algebraic];
         if (JSON.stringify(this.focus) == JSON.stringify(history2)) {
           moveText.addClass('prep-focus');
         }
-        if (child.recommended) {
+        if (move.recommended) {
           moveText.addClass('prep-recommended');
         }
         if (history2.length % 2 == 0) {
@@ -66,24 +101,23 @@ class PrepView {
           this.rerender();
         });
 
-        let expText = $.isEmptyObject(child.moves) ? '\u25c6' : child.expanded ? '\u25BC' : '\u25B6';
+        let expText = $.isEmptyObject(move.next.moves) ? '\u25c6' : move.next.expanded ? '\u25BC' : '\u25B6';
         let exp = $('<span class="prep-exp">').text(expText);
-        let child2 = child;
+        let move2 = move;
         exp.click(() => {
-          child2.expanded = !child2.expanded;
+          move2.next.expanded = !move2.next.expanded;
           this.rerender();
         });
         li.append(exp);
 
-        if (child.expanded && Object.keys(child.moves).length == 1) {
-          move = Object.keys(child.moves)[0];
-          child = child.moves[move];
+        if (move2.next.expanded && Object.keys(move2.next.moves).length == 1) {
+          move = move2.next.moves[0];
         } else {
           break;
         }
       }
 
-      li.append(this.render(child, history2));
+      li.append(this.render(move.next, history2));
       ul.append(li);
     }
     res.append(ul);
@@ -145,22 +179,33 @@ class PrepView {
     if (this.focus.length == 0) {
       return;
     }
-    let node = this.root;
-    for (let i = 0; i < this.focus.length - 1; i++) {
-      node = node.moves[this.focus[i]];
+    let secondLast = this.getNodeAfterMoves(this.focus.slice(0, -1));
+    if (secondLast == null) {
+      console.log('failed to delete move', this.focus);
+      return;
     }
-    let lastMove = this.focus[this.focus.length - 1];
-    delete node.moves[lastMove];
+    let lastMoveIx = nodeGetMoveIx(secondLast, this.focus[this.focus.length - 1]);
+    if (lastMoveIx == null) {
+      console.log("failed to delete move", this.focus);
+      return;
+    }
+    secondLast.moves.splice(lastMoveIx, 1);
     this.focus = this.focus.slice(0, this.focus.length - 1);
     this.rerender();
   }
 
   toggleRecommended() {
-    var node = this.root;
-    for (var move of this.focus) {
-      node = node.moves[move];
+    let secondLast = this.getNodeAfterMoves(this.focus.slice(0, -1));
+    if (secondLast == null) {
+      console.log('failed to delete move', this.focus);
+      return;
     }
-    node.recommended = !node.recommended;
+    let lastMove = nodeGetMove(secondLast, this.focus[this.focus.length - 1]);
+    if (lastMove == null) {
+      console.log("failed to delete move", this.focus);
+      return;
+    }
+    lastMove.recommended = !lastMove.recommended;
     this.rerender();
   }
 
