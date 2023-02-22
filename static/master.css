@@ -1,3 +1,17 @@
 .prep-ul {
   list-style-type: none;
 }
+#content, html, body {
+    height: 98%;
+}
+#left {
+    float: left;
+    width: 50%;
+    height: 100%;
+}
+#right {
+    float: left;
+    width: 50%;
+    height: 100%;
+    overflow: scroll;
+}
