@@ -2,21 +2,30 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-function Move(props: {algebraic: string, focused: boolean, isWhite: boolean}) {
-  let className = 'prep-move';
-  if (props.focused) {
-    className += ' prep-focus';
+type MoveProps = {algebraic: string, isWhite: boolean};
+type MoveState = {focused: boolean};
+
+class Move extends React.Component<MoveProps, MoveState> {
+  constructor(props: MoveProps) {
+    super(props);
+    this.state = {focused: true};
   }
-  if (props.isWhite) {
-    className += ' prep-white';
-  } else {
-    className += ' prep-black';
+  render() {
+    let className = 'prep-move';
+    if (this.state.focused) {
+      className += ' prep-focus';
+    }
+    if (this.props.isWhite) {
+      className += ' prep-white';
+    } else {
+      className += ' prep-black';
+    }
+    return (
+      <span className="Move">
+        <span className={className}>{this.props.algebraic}</span>
+      </span>
+    )
   }
-  return (
-    <span className="Move">
-      <span className={className}>{props.algebraic}</span>
-    </span>
-  )
 }
 
 function App() {
@@ -27,7 +36,7 @@ function App() {
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
-        <Move algebraic="e4" focused={true} isWhite={true}/>
+        <Move algebraic="e4" isWhite={true}/>
         <a
           className="App-link"
           href="https://reactjs.org"
