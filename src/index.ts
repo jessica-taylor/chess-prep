@@ -37,6 +37,26 @@ function nodeGetMove(node: PrepNode, algebraic: string): PrepMove | null {
   return node.moves[ix];
 }
 
+function simplifyFen(fen: string): string {
+  let chess = new Chess(fen);
+  let moves = chess.moves({verbose: true});
+  let parts = fen.split(' ');
+  var hasEnPassent = false;
+  for (let move of moves) {
+    if (move.flags.includes('e')) {
+      hasEnPassent = true;
+      break;
+    }
+  }
+  // remove en passent if not possible
+  if (!hasEnPassent) {
+    parts[3] = '-';
+  }
+  parts[4] = '0';
+  parts[5] = '1';
+  return parts.join(' ');
+}
+
 function chessStateAfterMoves(moves: string[]): Chess {
   let chess = new Chess();
   for (let move of moves) {
@@ -54,7 +74,7 @@ function fenAfterMove(fen: string, move: string): string | null {
   if (chess.move(move) == null) {
     return null;
   }
-  return chess.fen();
+  return simplifyFen(chess.fen());
 }
 
 class PrepView {
@@ -186,10 +206,9 @@ class PrepView {
 
   renderBoardAfterMoves(moves: string[]) {
     let chess = chessStateAfterMoves(moves);
-    let fen = chess.fen();
     (chessboard as any).default('board', {
       draggable: true,
-      position: fen,
+      position: chess.fen(),
       onDrop: (source: string, target: string, piece: string, newPos: any, oldPos: any, orientation: any) => {
         let oldState = chessStateAfterMoves(moves);
         let pmove: PartialMove = {from: source, to: target};
