@@ -56,9 +56,9 @@ class PrepView {
           moveText.addClass('prep-recommended');
         }
         if (history2.length % 2 == 0) {
-          moveText.addClass('prep-white');
-        } else {
           moveText.addClass('prep-black');
+        } else {
+          moveText.addClass('prep-white');
         }
         let history3 = history2;
         moveText.click(() => {
