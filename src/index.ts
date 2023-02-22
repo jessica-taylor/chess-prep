@@ -9,9 +9,25 @@ type PrepNode = {
 class PrepView {
   public root: PrepNode = {expanded: false, moves: {}};
   constructor() {
+    this.root.expanded = true;
+    this.root.moves['e4'] = {expanded: false, moves: {}};
+    this.root.moves['e5'] = {expanded: true, moves: {'Nf6': {expanded: false, moves: {}}}};
   }
   render(node: PrepNode): JQuery  {
-    return $('<div>').text('hello');
+    let res = $('<div class="prep-node">');
+    if (!node.expanded) {
+      return res;
+    }
+    let ul = $('<ul>');
+    for (let move in node.moves) {
+      let child = node.moves[move];
+      let li = $('<li>');
+      li.append($('<span>').text(move));
+      li.append(this.render(child));
+      ul.append(li);
+    }
+    res.append(ul);
+    return res;
   }
 }
 
