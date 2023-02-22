@@ -2,6 +2,7 @@
   "devDependencies": {
     "@types/chessboardjs": "^0.3.2",
     "browserify": "^17.0.0",
+    "static-server": "^2.2.1",
     "typescript": "^4.9.5"
   },
   "dependencies": {
