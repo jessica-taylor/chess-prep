@@ -9,16 +9,17 @@ import * as chessboard from 'chessboardjs';
 
 type PrepNode = {
   expanded: boolean;
+  recommended: boolean;
   moves: Record<string, PrepNode>;
 }
 
 class PrepView {
-  public root: PrepNode = {expanded: true, moves: {}};
+  public root: PrepNode = {expanded: true, recommended: true, moves: {}};
   public focus: string[] = [];
 
   constructor() {
-    this.root.moves['e4'] = {expanded: false, moves: {}};
-    this.root.moves['d4'] = {expanded: true, moves: {'Nf6': {expanded: false, moves: {}}}};
+    this.root.moves['e4'] = {expanded: false, recommended: true, moves: {}};
+    this.root.moves['d4'] = {expanded: true, recommended: true, moves: {'Nf6': {expanded: false, recommended: false, moves: {}}}};
     this.focus = ['e4'];
   }
 
@@ -27,7 +28,7 @@ class PrepView {
     for (let move of moves) {
       node.expanded = true;
       if (node.moves[move] == null) {
-        node.moves[move] = {expanded: false, moves: {}};
+        node.moves[move] = {expanded: false, recommended: false, moves: {}};
       }
       node = node.moves[move];
     }
@@ -50,6 +51,9 @@ class PrepView {
         history2 = [...history2, move];
         if (JSON.stringify(this.focus) == JSON.stringify(history2)) {
           moveText.addClass('prep-focus');
+        }
+        if (child.recommended) {
+          moveText.addClass('prep-recommended');
         }
         let history3 = history2;
         moveText.click(() => {
@@ -145,6 +149,15 @@ class PrepView {
     this.focus = this.focus.slice(0, this.focus.length - 1);
     this.rerender();
   }
+
+  toggleRecommended() {
+    var node = this.root;
+    for (var move of this.focus) {
+      node = node.moves[move];
+    }
+    node.recommended = !node.recommended;
+    this.rerender();
+  }
 }
 
 function main() {
@@ -153,8 +166,10 @@ function main() {
     let view = new PrepView();
     view.rerender();
     $('#delete-button').click(function() {
-      console.log('deleting!');
       view.deleteMove();
+    });
+    $('#recommended-button').click(function() {
+      view.toggleRecommended();
     });
   });
 }

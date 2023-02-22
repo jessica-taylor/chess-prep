@@ -4,6 +4,9 @@
 .prep-focus {
   background-color: yellow;
 }
+.prep-recommended {
+  font-weight: bold;
+}
 #content, html, body {
     height: 98%;
 }
