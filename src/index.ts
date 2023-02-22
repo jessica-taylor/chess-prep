@@ -21,18 +21,18 @@ type PrepNode = {
   moves: PrepMove[];
 }
 
-function nodeGetMoveIx(node: PrepNode, algebraic: string): number | null {
+function nodeGetMoveIx(node: PrepNode, algebraic: string): number{
   for (var i = 0; i < node.moves.length; ++i) {
     if (node.moves[i].algebraic == algebraic) {
       return i;
     }
   }
-  return null;
+  return -1;
 }
 
 function nodeGetMove(node: PrepNode, algebraic: string): PrepMove | null {
   let ix = nodeGetMoveIx(node, algebraic);
-  if (ix == null) {
+  if (ix == -1) {
     return null;
   }
   return node.moves[ix];
@@ -262,7 +262,7 @@ class PrepView {
       return;
     }
     let lastMoveIx = nodeGetMoveIx(secondLast, this.focus[this.focus.length - 1]);
-    if (lastMoveIx == null) {
+    if (lastMoveIx == -1) {
       console.log("failed to delete move", this.focus);
       return;
     }
@@ -305,7 +305,7 @@ class PrepView {
       return;
     }
     let lastMoveIx = nodeGetMoveIx(secondLast, this.focus[this.focus.length - 1]);
-    if (lastMoveIx == null) {
+    if (lastMoveIx == -1) {
       console.log("failed to swap move", this.focus);
       return;
     }
@@ -344,6 +344,41 @@ class PrepView {
     this.focus = [];
     this.rerender(true);
   }
+
+  focusArrow(direction: string) {
+    var secondLast = null;
+    var lastMoveIx = -1;
+    if (this.focus.length != 0) {
+      secondLast = this.getNodeAfterMoves(this.focus.slice(0, -1));
+      if (secondLast != null) {
+        lastMoveIx = nodeGetMoveIx(secondLast, this.focus[this.focus.length - 1]);
+      }
+    }
+    let last = this.getNodeAfterMoves(this.focus);
+    if (direction == 'left') {
+      this.focus = this.focus.slice(0, -1);
+      this.rerender();
+    } else if (direction == 'right') {
+      if (last != null && last.moves.length > 0) {
+        this.focus = [...this.focus, last.moves[0].algebraic];
+        this.rerender();
+      }
+    } else if (direction == 'up') {
+      let moveIx = lastMoveIx - 1;
+      if (moveIx >= 0 && secondLast != null) {
+        this.focus = [...this.focus.slice(0, -1), secondLast.moves[moveIx].algebraic];
+        this.rerender();
+      }
+    } else if (direction == 'down') {
+      if (lastMoveIx != -1 && secondLast != null) {
+        let moveIx = lastMoveIx + 1;
+        if (moveIx < secondLast.moves.length) {
+          this.focus = [...this.focus.slice(0, -1), secondLast.moves[moveIx].algebraic];
+          this.rerender();
+        }
+      }
+    }
+  }
 }
 
 function main() {
@@ -373,6 +408,19 @@ function main() {
       let node = view.getNodeAfterMoves(view.focus);
       if (node != null) {
         node.notes = $('#position-notes').val() as string;
+      }
+    });
+    $(document).keydown(function(event) {
+      if (event.ctrlKey) {
+        if (event.key == 'ArrowLeft') {
+          view.focusArrow('left');
+        } else if (event.key == 'ArrowRight') {
+          view.focusArrow('right');
+        } else if (event.key == 'ArrowUp') {
+          view.focusArrow('up');
+        } else if (event.key == 'ArrowDown') {
+          view.focusArrow('down');
+        }
       }
     });
   });
