@@ -22,6 +22,17 @@ class PrepView {
     this.focus = ['e4'];
   }
 
+  expandInto(moves: string[]) {
+    var node = this.root;
+    for (let move of moves) {
+      node.expanded = true;
+      if (node.moves[move] == null) {
+        node.moves[move] = {expanded: false, moves: {}};
+      }
+      node = node.moves[move];
+    }
+  }
+
   render(node: PrepNode, history: string[]): JQuery {
     let res = $('<div class="prep-node">');
     if (!node.expanded) {
@@ -55,7 +66,7 @@ class PrepView {
     return res;
   }
 
-  renderBoardAfterMoves(moves: string[]) {
+  chessStateAfterMoves(moves: string[]): Chess {
     let chess = new Chess();
     for (let move of moves) {
       let legalMoves = chess.moves();
@@ -64,8 +75,28 @@ class PrepView {
       }
       chess.move(move);
     }
+    return chess;
+  }
+
+  renderBoardAfterMoves(moves: string[]) {
+    let chess = this.chessStateAfterMoves(moves);
     let fen = chess.fen();
-    (chessboard as any).default('board', fen);
+    (chessboard as any).default('board', {
+      draggable: true,
+      position: fen,
+      onDrop: (source: string, target: string, piece: any, newPos: any, oldPos: any, orientation: any) => {
+        let oldState = this.chessStateAfterMoves(moves);
+        let pmove = {from: source, to: target};
+        let move = oldState.move(pmove);
+        if (move == null) {
+          return 'snapback';
+        }
+        this.focus = [...moves, move.san];
+        this.expandInto(this.focus);
+        this.rerender();
+        console.log('move: ' + source + ' ' + target + ' ' + piece + ' ' + newPos + ' ' + oldPos + ' ' + orientation);
+      }
+    });
   }
 
   rerender() {
