@@ -70,6 +70,15 @@ class PrepView {
 
   rerender() {
     $('#prep-display').empty();
+    let startMove = $('<span class="prep-move">').text('start');
+    startMove.click(() => {
+      this.focus = [];
+      this.rerender();
+    });
+    if (this.focus.length == 0) {
+      startMove.addClass('prep-focus');
+    }
+    $('#prep-display').append(startMove);
     $('#prep-display').append(this.render(this.root, []));
     this.renderBoardAfterMoves(this.focus);
   }
