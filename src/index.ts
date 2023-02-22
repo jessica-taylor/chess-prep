@@ -21,7 +21,7 @@ class PrepView {
     for (let move in node.moves) {
       let child = node.moves[move];
       let li = $('<li class="prep-li">');
-      let expText = child.expanded ? '\u25BC' : '\u25B6';
+      let expText = $.isEmptyObject(child.moves) ? '\u25c6' : child.expanded ? '\u25BC' : '\u25B6';
       let exp = $('<span class="prep-exp">').text(expText);
       exp.click(() => {
         child.expanded = !child.expanded;
