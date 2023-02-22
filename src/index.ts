@@ -17,6 +17,7 @@ type PrepMove = {
 
 type PrepNode = {
   expanded: boolean;
+  notes: string;
   moves: PrepMove[];
 }
 
@@ -83,7 +84,7 @@ class PrepView {
   public focus: string[] = [];
 
   constructor() {
-    this.nodes[startFen] = {expanded: true, moves: []};
+    this.nodes[startFen] = {expanded: true, notes: '', moves: []};
     // this.root.moves['e4'] = {expanded: false, recommended: true, moves: {}};
     // this.root.moves['d4'] = {expanded: true, recommended: true, moves: {'Nf6': {expanded: false, recommended: false, moves: {}}}};
     // this.focus = ['e4'];
@@ -92,7 +93,7 @@ class PrepView {
   getNodeOfFen(fen: string): PrepNode {
     let node = this.nodes[fen];
     if (!node) {
-      return this.nodes[fen] = {expanded: true, moves: []};
+      return this.nodes[fen] = {expanded: true, notes: '', moves: []};
     }
     return node;
   }
@@ -149,6 +150,14 @@ class PrepView {
       var error = false;
 
       while (true) {
+        let childFen = fenAfterMove(currFen, move.algebraic);
+        if (childFen == null) {
+          console.log('invalid child move', move.algebraic);
+          error = true;
+          break;
+        }
+
+        let childNode = this.getNodeOfFen(childFen);
         let moveText = $('<span class="prep-move">').text(move.algebraic);
         li.append(moveText);
         history2 = [...history2, move.algebraic];
@@ -166,16 +175,8 @@ class PrepView {
         let history3 = history2;
         moveText.click(() => {
           this.focus = history3;
-          this.rerender();
+          this.rerender(true);
         });
-
-        let childFen = fenAfterMove(currFen, move.algebraic);
-        if (childFen == null) {
-          console.log('invalid child move', move.algebraic);
-          error = true;
-          break;
-        }
-        let childNode = this.getNodeOfFen(childFen);
 
         let expText = $.isEmptyObject(childNode.moves) ? '\u25c6' : childNode.expanded ? '\u25BC' : '\u25B6';
         let exp = $('<span class="prep-exp">').text(expText);
@@ -221,17 +222,17 @@ class PrepView {
         }
         this.focus = [...moves, move.san];
         this.expandInto(this.focus);
-        this.rerender();
+        this.rerender(true);
       }
     });
   }
 
-  rerender() {
+  rerender(changeNotes: boolean = false) {
     $('#prep-display').empty();
     let startMove = $('<span class="prep-move">').text('start');
     startMove.click(() => {
       this.focus = [];
-      this.rerender();
+      this.rerender(true);
     });
     if (this.focus.length == 0) {
       startMove.addClass('prep-focus');
@@ -239,6 +240,13 @@ class PrepView {
     $('#prep-display').append(startMove);
     $('#prep-display').append(this.render(startFen, []));
     this.renderBoardAfterMoves(this.focus);
+
+    if (changeNotes) {
+      let node = this.getNodeAfterMoves(this.focus);
+      if (node != null) {
+        $('#position-notes').val(node.notes);
+      }
+    }
   }
 
   deleteMove() {
@@ -257,7 +265,7 @@ class PrepView {
     }
     secondLast.moves.splice(lastMoveIx, 1);
     this.focus = this.focus.slice(0, this.focus.length - 1);
-    this.rerender();
+    this.rerender(true);
   }
 
   toggleRecommended() {
@@ -325,7 +333,7 @@ class PrepView {
   importFile(text: string) {
     this.nodes = JSON.parse(text) as Record<string, PrepNode>;
     this.focus = [];
-    this.rerender();
+    this.rerender(true);
   }
 }
 
@@ -333,7 +341,7 @@ function main() {
   (window as any).bar = chessboard;
   $(function() {
     let view = new PrepView();
-    view.rerender();
+    view.rerender(true);
     $('#delete-button').click(function() {
       view.deleteMove();
     });
@@ -351,6 +359,12 @@ function main() {
     });
     $('#import-file').change(function() {
       ((this as any).files[0] as File).text().then((text) => view.importFile(text));
+    });
+    $('#save-notes-button').click(function() {
+      let node = view.getNodeAfterMoves(view.focus);
+      if (node != null) {
+        node.notes = $('#position-notes').val() as string;
+      }
     });
   });
 }
