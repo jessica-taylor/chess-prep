@@ -39,26 +39,41 @@ class PrepView {
       return res;
     }
     let ul = $('<ul class="prep-ul">');
-    for (let move in node.moves) {
-      let child = node.moves[move];
+    for (var move in node.moves) {
+      var child = node.moves[move];
       let li = $('<li class="prep-li">');
-      let expText = $.isEmptyObject(child.moves) ? '\u25c6' : child.expanded ? '\u25BC' : '\u25B6';
-      let exp = $('<span class="prep-exp">').text(expText);
-      exp.click(() => {
-        child.expanded = !child.expanded;
-        this.rerender();
-      });
-      li.append(exp);
-      let moveText = $('<span class="prep-move">').text(move);
-      li.append(moveText);
-      let history2 = [...history, move];
-      if (JSON.stringify(this.focus) == JSON.stringify(history2)) {
-        moveText.addClass('prep-focus');
+      var history2 = history;
+
+      while (true) {
+        let moveText = $('<span class="prep-move">').text(move);
+        li.append(moveText);
+        history2 = [...history2, move];
+        if (JSON.stringify(this.focus) == JSON.stringify(history2)) {
+          moveText.addClass('prep-focus');
+        }
+        let history3 = history2;
+        moveText.click(() => {
+          this.focus = history3;
+          this.rerender();
+        });
+
+        let expText = $.isEmptyObject(child.moves) ? '\u25c6' : child.expanded ? '\u25BC' : '\u25B6';
+        let exp = $('<span class="prep-exp">').text(expText);
+        let child2 = child;
+        exp.click(() => {
+          child2.expanded = !child2.expanded;
+          this.rerender();
+        });
+        li.append(exp);
+
+        if (child.expanded && Object.keys(child.moves).length == 1) {
+          move = Object.keys(child.moves)[0];
+          child = child.moves[move];
+        } else {
+          break;
+        }
       }
-      moveText.click(() => {
-        this.focus = history2;
-        this.rerender();
-      });
+
       li.append(this.render(child, history2));
       ul.append(li);
     }
