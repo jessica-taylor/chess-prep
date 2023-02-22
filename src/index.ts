@@ -14,15 +14,15 @@ type PrepNode = {
 
 class PrepView {
   public root: PrepNode = {expanded: true, moves: {}};
-  public focus: PrepNode = this.root;
+  public focus: string[] = [];
 
   constructor() {
     this.root.moves['e4'] = {expanded: false, moves: {}};
-    this.root.moves['e5'] = {expanded: true, moves: {'Nf6': {expanded: false, moves: {}}}};
-    this.focus = this.root.moves['e5'];
+    this.root.moves['d4'] = {expanded: true, moves: {'Nf6': {expanded: false, moves: {}}}};
+    this.focus = ['e4'];
   }
 
-  render(node: PrepNode): JQuery {
+  render(node: PrepNode, history: string[]): JQuery {
     let res = $('<div class="prep-node">');
     if (!node.expanded) {
       return res;
@@ -38,8 +38,17 @@ class PrepView {
         this.rerender();
       });
       li.append(exp);
-      li.append($('<span>').text(move));
-      li.append(this.render(child));
+      let moveText = $('<span class="prep-move">').text(move);
+      li.append(moveText);
+      let history2 = [...history, move];
+      if (JSON.stringify(this.focus) == JSON.stringify(history2)) {
+        moveText.addClass('prep-focus');
+      }
+      moveText.click(() => {
+        this.focus = history2;
+        this.rerender();
+      });
+      li.append(this.render(child, history2));
       ul.append(li);
     }
     res.append(ul);
@@ -61,8 +70,8 @@ class PrepView {
 
   rerender() {
     $('#prep-display').empty();
-    $('#prep-display').append(this.render(this.root));
-    this.renderBoardAfterMoves(['e4', 'e5']);
+    $('#prep-display').append(this.render(this.root, []));
+    this.renderBoardAfterMoves(this.focus);
   }
 }
 

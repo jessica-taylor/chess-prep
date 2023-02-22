@@ -1,6 +1,9 @@
 .prep-ul {
   list-style-type: none;
 }
+.prep-focus {
+  background-color: yellow;
+}
 #content, html, body {
     height: 98%;
 }
