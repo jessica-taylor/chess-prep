@@ -261,6 +261,9 @@ class PrepView {
   }
 
   toggleRecommended() {
+    if (this.focus.length == 0) {
+      return;
+    }
     let secondLast = this.getNodeAfterMoves(this.focus.slice(0, -1));
     if (secondLast == null) {
       console.log('failed to change recommended move', this.focus);
@@ -272,6 +275,30 @@ class PrepView {
       return;
     }
     lastMove.recommended = !lastMove.recommended;
+    this.rerender();
+  }
+
+  swapMove(offset: number) {
+    if (this.focus.length == 0) {
+      return;
+    }
+    let secondLast = this.getNodeAfterMoves(this.focus.slice(0, -1));
+    if (secondLast == null) {
+      console.log('failed to swap move', this.focus);
+      return;
+    }
+    let lastMoveIx = nodeGetMoveIx(secondLast, this.focus[this.focus.length - 1]);
+    if (lastMoveIx == null) {
+      console.log("failed to swap move", this.focus);
+      return;
+    }
+    let swapIx = lastMoveIx + offset;
+    if (swapIx < 0 || swapIx >= secondLast.moves.length) {
+      return;
+    }
+    let temp = secondLast.moves[lastMoveIx];
+    secondLast.moves[lastMoveIx] = secondLast.moves[swapIx];
+    secondLast.moves[swapIx] = temp;
     this.rerender();
   }
 
@@ -309,6 +336,12 @@ function main() {
     view.rerender();
     $('#delete-button').click(function() {
       view.deleteMove();
+    });
+    $('#up-button').click(function() {
+      view.swapMove(-1);
+    });
+    $('#down-button').click(function() {
+      view.swapMove(1);
     });
     $('#recommended-button').click(function() {
       view.toggleRecommended();
