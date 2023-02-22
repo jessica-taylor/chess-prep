@@ -7,10 +7,12 @@ import {Chess, PartialMove, PieceSymbol} from 'chess.ts';
 
 import * as chessboard from 'chessboardjs';
 
+let startFen: string = new Chess().fen();
+
 type PrepMove = {
   algebraic: string;
   recommended: boolean;
-  next: PrepNode;
+  // next: PrepNode;
 }
 
 type PrepNode = {
@@ -35,42 +37,86 @@ function nodeGetMove(node: PrepNode, algebraic: string): PrepMove | null {
   return node.moves[ix];
 }
 
+function chessStateAfterMoves(moves: string[]): Chess {
+  let chess = new Chess();
+  for (let move of moves) {
+    let legalMoves = chess.moves();
+    if (!legalMoves.includes(move)) {
+      console.log('illegal move: ' + move);
+    }
+    chess.move(move);
+  }
+  return chess;
+}
+
+function fenAfterMove(fen: string, move: string): string | null {
+  let chess = new Chess(fen);
+  if (chess.move(move) == null) {
+    return null;
+  }
+  return chess.fen();
+}
+
 class PrepView {
-  public root: PrepNode = {expanded: true, moves: []};
+  public nodes: Record<string, PrepNode> = {};
+  // public root: PrepNode = {expanded: true, moves: []};
   public focus: string[] = [];
 
   constructor() {
+    this.nodes[startFen] = {expanded: true, moves: []};
     // this.root.moves['e4'] = {expanded: false, recommended: true, moves: {}};
     // this.root.moves['d4'] = {expanded: true, recommended: true, moves: {'Nf6': {expanded: false, recommended: false, moves: {}}}};
     // this.focus = ['e4'];
   }
 
+  getNodeOfFen(fen: string): PrepNode {
+    let node = this.nodes[fen];
+    if (!node) {
+      return this.nodes[fen] = {expanded: true, moves: []};
+    }
+    return node;
+  }
+
   getNodeAfterMoves(moves: string[]): PrepNode | null {
-    var node = this.root;
+    var fen = startFen;
+    var node = this.getNodeOfFen(fen);
     for (let move of moves) {
       let pmove = nodeGetMove(node, move);
       if (pmove == null) {
         return null;
       }
-      node = pmove.next;
+      let nextFen = fenAfterMove(fen, move);
+      if (nextFen == null) {
+        return null;
+      }
+      fen = nextFen;
+      node = this.getNodeOfFen(fen);
     }
     return node;
   }
 
   expandInto(moves: string[]) {
-    var node = this.root;
+    var fen = startFen;
+    var node = this.getNodeOfFen(fen);
     for (let move of moves) {
-      node.expanded = true;
-      let pmove = nodeGetMove(node, move);
+      var pmove = nodeGetMove(node, move);
       if (pmove == null) {
-        pmove = {algebraic: move, recommended: false, next: {expanded: false, moves: []}};
+        pmove = {algebraic: move, recommended: false};
         node.moves.push(pmove);
       }
-      node = pmove.next;
+      let nextFen = fenAfterMove(fen, move);
+      if (nextFen == null) {
+        console.log('invalid move', move);
+        return null;
+      }
+      fen = nextFen;
+      node = this.getNodeOfFen(fen);
+      node.expanded = true;
     }
   }
 
-  render(node: PrepNode, history: string[]): JQuery {
+  render(fen: string, history: string[]): JQuery {
+    let node = this.getNodeOfFen(fen);
     let res = $('<div class="prep-node">');
     if (!node.expanded) {
       return res;
@@ -79,6 +125,8 @@ class PrepView {
     for (let move of node.moves) {
       let li = $('<li class="prep-li">');
       var history2 = history;
+      var currFen = fen;
+      var error = false;
 
       while (true) {
         let moveText = $('<span class="prep-move">').text(move.algebraic);
@@ -101,49 +149,49 @@ class PrepView {
           this.rerender();
         });
 
-        let expText = $.isEmptyObject(move.next.moves) ? '\u25c6' : move.next.expanded ? '\u25BC' : '\u25B6';
+        let childFen = fenAfterMove(currFen, move.algebraic);
+        if (childFen == null) {
+          console.log('invalid child move', move.algebraic);
+          error = true;
+          break;
+        }
+        let childNode = this.getNodeOfFen(childFen);
+
+        let expText = $.isEmptyObject(childNode.moves) ? '\u25c6' : childNode.expanded ? '\u25BC' : '\u25B6';
         let exp = $('<span class="prep-exp">').text(expText);
-        let move2 = move;
+        let childNode2 = childNode;
         exp.click(() => {
-          move2.next.expanded = !move2.next.expanded;
+          childNode2.expanded = !childNode2.expanded;
           this.rerender();
         });
         li.append(exp);
 
-        if (move2.next.expanded && Object.keys(move2.next.moves).length == 1) {
-          move = move2.next.moves[0];
+        currFen = childFen;
+        if (childNode.expanded && Object.keys(childNode.moves).length == 1) {
+          move = childNode.moves[0];
         } else {
           break;
         }
       }
 
-      li.append(this.render(move.next, history2));
+      if (!error) {
+        li.append(this.render(currFen, history2));
+      }
       ul.append(li);
     }
     res.append(ul);
     return res;
   }
 
-  chessStateAfterMoves(moves: string[]): Chess {
-    let chess = new Chess();
-    for (let move of moves) {
-      let legalMoves = chess.moves();
-      if (!legalMoves.includes(move)) {
-        console.log('illegal move: ' + move);
-      }
-      chess.move(move);
-    }
-    return chess;
-  }
 
   renderBoardAfterMoves(moves: string[]) {
-    let chess = this.chessStateAfterMoves(moves);
+    let chess = chessStateAfterMoves(moves);
     let fen = chess.fen();
     (chessboard as any).default('board', {
       draggable: true,
       position: fen,
       onDrop: (source: string, target: string, piece: string, newPos: any, oldPos: any, orientation: any) => {
-        let oldState = this.chessStateAfterMoves(moves);
+        let oldState = chessStateAfterMoves(moves);
         let pmove: PartialMove = {from: source, to: target};
         if (piece[1] == 'P') {
           pmove.promotion = $('#promote-select').val() as PieceSymbol;
@@ -155,7 +203,6 @@ class PrepView {
         this.focus = [...moves, move.san];
         this.expandInto(this.focus);
         this.rerender();
-        // console.log('move: ' + source + ' ' + target + ' ' + piece + ' ' + newPos + ' ' + oldPos + ' ' + orientation);
       }
     });
   }
@@ -171,7 +218,7 @@ class PrepView {
       startMove.addClass('prep-focus');
     }
     $('#prep-display').append(startMove);
-    $('#prep-display').append(this.render(this.root, []));
+    $('#prep-display').append(this.render(startFen, []));
     this.renderBoardAfterMoves(this.focus);
   }
 
@@ -197,12 +244,12 @@ class PrepView {
   toggleRecommended() {
     let secondLast = this.getNodeAfterMoves(this.focus.slice(0, -1));
     if (secondLast == null) {
-      console.log('failed to delete move', this.focus);
+      console.log('failed to change recommended move', this.focus);
       return;
     }
     let lastMove = nodeGetMove(secondLast, this.focus[this.focus.length - 1]);
     if (lastMove == null) {
-      console.log("failed to delete move", this.focus);
+      console.log("failed to change recommended move", this.focus);
       return;
     }
     lastMove.recommended = !lastMove.recommended;
@@ -210,7 +257,7 @@ class PrepView {
   }
 
   exportFile() {
-    let content = JSON.stringify(this.root);
+    let content = JSON.stringify(this.nodes);
 
     // Create element with <a> tag
     const link = document.createElement("a");
@@ -230,8 +277,7 @@ class PrepView {
   }
 
   importFile(text: string) {
-    console.log('import', text);
-    this.root = JSON.parse(text) as PrepNode;
+    this.nodes = JSON.parse(text) as Record<string, PrepNode>;
     this.focus = [];
     this.rerender();
   }
