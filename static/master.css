@@ -5,7 +5,14 @@
   background-color: yellow;
 }
 .prep-recommended {
-  font-weight: bold;
+  // font-weight: 800;
+  text-decoration: underline;
+}
+.prep-white {
+  color: red;
+}
+.prep-black {
+  color: blue;
 }
 #content, html, body {
     height: 98%;
