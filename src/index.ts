@@ -163,6 +163,33 @@ class PrepView {
     node.recommended = !node.recommended;
     this.rerender();
   }
+
+  exportFile() {
+    let content = JSON.stringify(this.root);
+
+    // Create element with <a> tag
+    const link = document.createElement("a");
+    
+    // Create a blog object with the file content which you want to add to the file
+    const file = new Blob([content], { type: 'text/plain' });
+    
+    // Add file content in the object URL
+    link.href = URL.createObjectURL(file);
+    
+    // Add file name
+    link.download = "prep.json";
+    
+    // Add click event to <a> tag to save file.
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
+  importFile(text: string) {
+    console.log('import', text);
+    this.root = JSON.parse(text) as PrepNode;
+    this.focus = [];
+    this.rerender();
+  }
 }
 
 function main() {
@@ -175,6 +202,12 @@ function main() {
     });
     $('#recommended-button').click(function() {
       view.toggleRecommended();
+    });
+    $('#export-button').click(function() {
+      view.exportFile();
+    });
+    $('#import-file').change(function() {
+      ((this as any).files[0] as File).text().then((text) => view.importFile(text));
     });
   });
 }
