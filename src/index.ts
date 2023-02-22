@@ -18,10 +18,15 @@ class PrepView {
     if (!node.expanded) {
       return res;
     }
-    let ul = $('<ul>');
+    let ul = $('<ul class="prep-ul">');
     for (let move in node.moves) {
       let child = node.moves[move];
-      let li = $('<li>');
+      let li = $('<li class="prep-li">');
+      if (child.expanded) {
+        li.append($('<span>').text('\u25BC'));
+      } else {
+        li.append($('<span>').text('\u25B6'));
+      }
       li.append($('<span>').text(move));
       li.append(this.render(child));
       ul.append(li);
