@@ -3,7 +3,7 @@ import * as jQuery from 'jquery';
 let $ = jQuery.default;
 (window as any).$ = $;
 
-import {Chess, PartialMove} from 'chess.ts';
+import {Chess, PartialMove, PieceSymbol} from 'chess.ts';
 
 import * as chessboard from 'chessboardjs';
 
@@ -88,7 +88,7 @@ class PrepView {
         let oldState = this.chessStateAfterMoves(moves);
         let pmove: PartialMove = {from: source, to: target};
         if (piece[1] == 'P') {
-          pmove.promotion = 'q'; // TODO popup prompt?
+          pmove.promotion = $('#promote-select').val() as PieceSymbol;
         }
         let move = oldState.move(pmove);
         if (move == null) {
@@ -97,7 +97,7 @@ class PrepView {
         this.focus = [...moves, move.san];
         this.expandInto(this.focus);
         this.rerender();
-        console.log('move: ' + source + ' ' + target + ' ' + piece + ' ' + newPos + ' ' + oldPos + ' ' + orientation);
+        // console.log('move: ' + source + ' ' + target + ' ' + piece + ' ' + newPos + ' ' + oldPos + ' ' + orientation);
       }
     });
   }
