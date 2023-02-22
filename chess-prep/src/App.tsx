@@ -2,10 +2,19 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-function Move(props: {algebraic: string}) {
+function Move(props: {algebraic: string, focused: boolean, isWhite: boolean}) {
+  let className = 'prep-move';
+  if (props.focused) {
+    className += ' prep-focus';
+  }
+  if (props.isWhite) {
+    className += ' prep-white';
+  } else {
+    className += ' prep-black';
+  }
   return (
     <span className="Move">
-      <span className="prep-move">{props.algebraic}</span>
+      <span className={className}>{props.algebraic}</span>
     </span>
   )
 }
@@ -18,7 +27,7 @@ function App() {
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
-        <Move algebraic="e4"/>
+        <Move algebraic="e4" focused={true} isWhite={true}/>
         <a
           className="App-link"
           href="https://reactjs.org"

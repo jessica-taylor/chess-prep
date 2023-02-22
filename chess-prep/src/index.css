@@ -11,3 +11,34 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
+.prep-ul {
+  list-style-type: none;
+}
+.prep-focus {
+  background-color: yellow;
+}
+.prep-recommended {
+  text-decoration: underline;
+}
+.prep-white {
+  color: red;
+}
+.prep-black {
+  color: blue;
+}
+#content, html, body {
+    height: 98%;
+}
+#left {
+    float: left;
+    width: 50%;
+    height: 100%;
+}
+#right {
+    float: left;
+    width: 50%;
+    height: 100%;
+    overflow: scroll;
+}
