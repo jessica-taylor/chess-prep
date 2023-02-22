@@ -84,9 +84,12 @@ class PrepView {
     (chessboard as any).default('board', {
       draggable: true,
       position: fen,
-      onDrop: (source: string, target: string, piece: any, newPos: any, oldPos: any, orientation: any) => {
+      onDrop: (source: string, target: string, piece: string, newPos: any, oldPos: any, orientation: any) => {
         let oldState = this.chessStateAfterMoves(moves);
-        let pmove = {from: source, to: target};
+        let pmove: PartialMove = {from: source, to: target};
+        if (piece[1] == 'P') {
+          pmove.promotion = 'q'; // TODO popup prompt?
+        }
         let move = oldState.move(pmove);
         if (move == null) {
           return 'snapback';
@@ -113,6 +116,20 @@ class PrepView {
     $('#prep-display').append(this.render(this.root, []));
     this.renderBoardAfterMoves(this.focus);
   }
+
+  deleteMove() {
+    if (this.focus.length == 0) {
+      return;
+    }
+    let node = this.root;
+    for (let i = 0; i < this.focus.length - 1; i++) {
+      node = node.moves[this.focus[i]];
+    }
+    let lastMove = this.focus[this.focus.length - 1];
+    delete node.moves[lastMove];
+    this.focus = this.focus.slice(0, this.focus.length - 1);
+    this.rerender();
+  }
 }
 
 function main() {
@@ -120,6 +137,10 @@ function main() {
   $(function() {
     let view = new PrepView();
     view.rerender();
+    $('#delete-button').click(function() {
+      console.log('deleting!');
+      view.deleteMove();
+    });
   });
 }
 
