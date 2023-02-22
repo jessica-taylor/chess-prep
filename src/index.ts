@@ -1,5 +1,8 @@
 import * as jQuery from 'jquery';
 let $ = jQuery.default;
+(window as any).$ = $;
+
+import * as chessboard from 'chessboardjs';
 
 type PrepNode = {
   expanded: boolean;
@@ -38,10 +41,12 @@ class PrepView {
   rerender() {
     $('#prep-display').empty();
     $('#prep-display').append(this.render(this.root));
+    let board = (chessboard as any).default('board', 'start');
   }
 }
 
 function main() {
+  (window as any).bar = chessboard;
   $(function() {
     let view = new PrepView();
     view.rerender();
