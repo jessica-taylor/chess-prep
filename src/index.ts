@@ -70,6 +70,10 @@ function chessStateAfterMoves(moves: string[]): Chess {
   return chess;
 }
 
+function fenAfterMoves(moves: string[]): string {
+  return simplifyFen(chessStateAfterMoves(moves).fen());
+}
+
 function fenAfterMove(fen: string, move: string): string | null {
   let chess = new Chess(fen);
   if (chess.move(move) == null) {
@@ -206,10 +210,9 @@ class PrepView {
 
 
   renderBoardAfterMoves(moves: string[]) {
-    let chess = chessStateAfterMoves(moves);
     (chessboard as any).default('board', {
       draggable: true,
-      position: chess.fen(),
+      position: fenAfterMoves(moves),
       onDrop: (source: string, target: string, piece: string, newPos: any, oldPos: any, orientation: any) => {
         let oldState = chessStateAfterMoves(moves);
         let pmove: PartialMove = {from: source, to: target};
@@ -262,6 +265,12 @@ class PrepView {
     if (lastMoveIx == null) {
       console.log("failed to delete move", this.focus);
       return;
+    }
+    let last = this.getNodeAfterMoves(this.focus);
+    if (last != null && (last.moves.length > 0 || last.notes != '')) {
+      if (!confirm('This move has children or notes. Are you sure you want to delete it?')) {
+        return;
+      }
     }
     secondLast.moves.splice(lastMoveIx, 1);
     this.focus = this.focus.slice(0, this.focus.length - 1);
