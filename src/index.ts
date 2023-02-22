@@ -1,6 +1,9 @@
+
 import * as jQuery from 'jquery';
 let $ = jQuery.default;
 (window as any).$ = $;
+
+import {Chess, PartialMove} from 'chess.ts';
 
 import * as chessboard from 'chessboardjs';
 
@@ -11,10 +14,14 @@ type PrepNode = {
 
 class PrepView {
   public root: PrepNode = {expanded: true, moves: {}};
+  public focus: PrepNode = this.root;
+
   constructor() {
     this.root.moves['e4'] = {expanded: false, moves: {}};
     this.root.moves['e5'] = {expanded: true, moves: {'Nf6': {expanded: false, moves: {}}}};
+    this.focus = this.root.moves['e5'];
   }
+
   render(node: PrepNode): JQuery {
     let res = $('<div class="prep-node">');
     if (!node.expanded) {
@@ -38,10 +45,24 @@ class PrepView {
     res.append(ul);
     return res;
   }
+
+  renderBoardAfterMoves(moves: string[]) {
+    let chess = new Chess();
+    for (let move of moves) {
+      let legalMoves = chess.moves();
+      if (!legalMoves.includes(move)) {
+        console.log('illegal move: ' + move);
+      }
+      chess.move(move);
+    }
+    let fen = chess.fen();
+    (chessboard as any).default('board', fen);
+  }
+
   rerender() {
     $('#prep-display').empty();
     $('#prep-display').append(this.render(this.root));
-    let board = (chessboard as any).default('board', 'start');
+    this.renderBoardAfterMoves(['e4', 'e5']);
   }
 }
 
