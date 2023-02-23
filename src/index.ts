@@ -310,7 +310,7 @@ class PrepView implements TreeEventHandlers {
     });
   }
 
-  rerender(changeNotes: boolean = false) {
+  rerender() {
     $('#prep-display').empty();
     this.startMove.render();
     $('#prep-display').append(this.startMove.jquery);
@@ -319,12 +319,10 @@ class PrepView implements TreeEventHandlers {
     $('#prep-display').append(this.rootComponent.jquery);
     this.renderBoardAfterMoves(this.focus);
 
-    // if (changeNotes) {
-    //   let node = this.getNodeAfterMoves(this.focus);
-    //   if (node != null) {
-    //     $('#position-notes').val(node.notes);
-    //   }
-    // }
+    let node = this.getNodeAfterMoves(this.focus);
+    if (node != null) {
+      $('#position-notes').val(node.notes);
+    }
   }
 
   getMoveComponentAt(history: string[]) : MoveComponent | null {
@@ -430,7 +428,7 @@ class PrepView implements TreeEventHandlers {
     let temp = secondLast.moves[lastMoveIx];
     secondLast.moves[lastMoveIx] = secondLast.moves[swapIx];
     secondLast.moves[swapIx] = temp;
-    this.rerender();
+    this.rerenderNodeAt(this.focus.slice(0, -1));
   }
 
   exportFile() {
@@ -456,7 +454,7 @@ class PrepView implements TreeEventHandlers {
   importFile(text: string) {
     this.nodes = JSON.parse(text) as Record<string, PrepNode>;
     this.focus = [];
-    this.rerender(true);
+    this.rerender();
   }
 
   focusArrow(direction: string) {
@@ -495,7 +493,7 @@ function main() {
   (window as any).bar = chessboard;
   $(function() {
     let view = new PrepView();
-    view.rerender(true);
+    view.rerender();
     $('#delete-button').click(function() {
       view.deleteMove();
     });
