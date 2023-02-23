@@ -145,15 +145,17 @@ class NodeComponent {
 
   render() {
     this.moveNodeComponents = [];
-    for (let move of this.node.moves) {
-      let newHistory = [...this.history, move.algebraic];
-      let mc = new MoveComponent(move, newHistory, this.handlers);
-      let node = this.handlers.getNodeAfterMoves(newHistory);
-      if (node == null) {
-        node = {expanded: false, notes: '', moves: []};
+    if (this.node.expanded) {
+      for (let move of this.node.moves) {
+        let newHistory = [...this.history, move.algebraic];
+        let mc = new MoveComponent(move, newHistory, this.handlers);
+        let node = this.handlers.getNodeAfterMoves(newHistory);
+        if (node == null) {
+          node = {expanded: false, notes: '', moves: []};
+        }
+        let nc = new NodeComponent(node, newHistory, this.handlers);
+        this.moveNodeComponents.push({moveComponent: mc, nodeComponent: nc});
       }
-      let nc = new NodeComponent(node, newHistory, this.handlers);
-      this.moveNodeComponents.push({moveComponent: mc, nodeComponent: nc});
     }
 
     this.jquery.empty();
@@ -314,7 +316,7 @@ class PrepView implements TreeEventHandlers {
     $('#prep-display').empty();
     this.startMove.render();
     $('#prep-display').append(this.startMove.jquery);
-    // $('#prep-display').append(this.render(startFen, []));
+    this.rootComponent = new NodeComponent(this.nodes[startFen], [], this);
     this.rootComponent.render();
     $('#prep-display').append(this.rootComponent.jquery);
     this.renderBoardAfterMoves(this.focus);
@@ -452,9 +454,12 @@ class PrepView implements TreeEventHandlers {
   }
 
   importFile(text: string) {
+    console.log('importing');
     this.nodes = JSON.parse(text) as Record<string, PrepNode>;
+    console.log('parsed');
     this.focus = [];
     this.rerender();
+    console.log('rendered');
   }
 
   focusArrow(direction: string) {
