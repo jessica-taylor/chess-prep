@@ -84,8 +84,7 @@ function fenAfterMove(fen: string, move: string): string | null {
 
 interface TreeEventHandlers {
   clickMove(move: MoveComponent): void;
-  toggleExpandNode(node: NodeComponent): void;
-  getNode(history: string[]): PrepNode;
+  getNodeAfterMoves(history: string[]): PrepNode | null;
 }
 
 class MoveComponent {
@@ -118,6 +117,7 @@ class MoveComponent {
       this.handlers.clickMove(this)
     });
   }
+
 }
 
 type MoveAndNodeComponents = {
@@ -144,7 +144,11 @@ class NodeComponent {
     for (let move of this.node.moves) {
       let newHistory = [...this.history, move.algebraic];
       let mc = new MoveComponent(move, newHistory, this.handlers);
-      let nc = new NodeComponent(this.handlers.getNode(newHistory), newHistory, this.handlers);
+      let node = this.handlers.getNodeAfterMoves(newHistory);
+      if (node == null) {
+        node = {expanded: false, notes: '', moves: []};
+      }
+      let nc = new NodeComponent(node, newHistory, this.handlers);
       this.moveNodeComponents.push({moveComponent: mc, nodeComponent: nc});
     }
 
@@ -154,7 +158,7 @@ class NodeComponent {
     let exp = $('<span class="prep-exp">').text(expText);
     exp.click(() => {
       this.node.expanded = !this.node.expanded;
-      this.handlers.toggleExpandNode(this);
+      this.render(focus);
     });
 
     this.jquery.append(exp);
@@ -184,9 +188,28 @@ class NodeComponent {
     }
     this.jquery.append(ul);
   }
+
+  getMoveComponent(postfix: string[]): MoveComponent | null {
+    if (postfix.length == 0) {
+      return null;
+    }
+    var node: NodeComponent = this;
+    for (var i = 0; i < postfix.length - 1; ++i) {
+      let ix = nodeGetMoveIx(node.node, postfix[i]);
+      if (ix == -1) {
+        return null;
+      }
+      node = node.moveNodeComponents[ix].nodeComponent;
+    }
+    let ix = nodeGetMoveIx(node.node, postfix[postfix.length - 1]);
+    if (ix == -1) {
+      return null;
+    }
+    return node.moveNodeComponents[ix].moveComponent;
+  }
 }
 
-class PrepView {
+class PrepView implements TreeEventHandlers {
   public nodes: Record<string, PrepNode> = {};
   // public root: PrepNode = {expanded: true, moves: []};
   public focus: string[] = [];
@@ -354,6 +377,12 @@ class PrepView {
         $('#position-notes').val(node.notes);
       }
     }
+  }
+
+  clickMove(mc: MoveComponent) {
+    mc.render(this.focus);
+    // TODO render other focused thing
+    this.renderBoardAfterMoves(this.focus);
   }
 
   deleteMove() {
