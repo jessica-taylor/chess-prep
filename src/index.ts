@@ -193,17 +193,25 @@ class NodeComponent {
     this.jquery.append(ul);
   }
 
-  getMoveComponent(postfix: string[]): MoveComponent | null {
-    if (postfix.length == 0) {
-      return null;
-    }
+  getNodeComponent(postfix: string[]): NodeComponent | null {
     var node: NodeComponent = this;
-    for (var i = 0; i < postfix.length - 1; ++i) {
-      let ix = nodeGetMoveIx(node.node, postfix[i]);
+    for (let nextMove of postfix) {
+      let ix = nodeGetMoveIx(node.node, nextMove);
       if (ix == -1) {
         return null;
       }
       node = node.moveNodeComponents[ix].nodeComponent;
+    }
+    return node;
+  }
+
+  getMoveComponent(postfix: string[]): MoveComponent | null {
+    if (postfix.length == 0) {
+      return null;
+    }
+    var node = this.getNodeComponent(postfix.slice(0, -1));
+    if (node == null) {
+      return null;
     }
     let ix = nodeGetMoveIx(node.node, postfix[postfix.length - 1]);
     if (ix == -1) {
@@ -291,9 +299,13 @@ class PrepView implements TreeEventHandlers {
         if (move == null) {
           return 'snapback';
         }
-        this.focus = [...moves, move.san];
-        this.expandInto(this.focus);
-        this.rerender(true);
+        let newFocus = [...moves, move.san];
+        this.expandInto(newFocus);
+        let parentNode = this.rootComponent.getNodeComponent(moves);
+        if (parentNode != null) {
+          parentNode.render();
+        }
+        this.clickMoveAt(newFocus);
       }
     });
   }
@@ -307,12 +319,12 @@ class PrepView implements TreeEventHandlers {
     $('#prep-display').append(this.rootComponent.jquery);
     this.renderBoardAfterMoves(this.focus);
 
-    if (changeNotes) {
-      let node = this.getNodeAfterMoves(this.focus);
-      if (node != null) {
-        $('#position-notes').val(node.notes);
-      }
-    }
+    // if (changeNotes) {
+    //   let node = this.getNodeAfterMoves(this.focus);
+    //   if (node != null) {
+    //     $('#position-notes').val(node.notes);
+    //   }
+    // }
   }
 
   getMoveComponentAt(history: string[]) : MoveComponent | null {
@@ -321,13 +333,16 @@ class PrepView implements TreeEventHandlers {
 
   clickMove(mc: MoveComponent) {
     let mc2 = this.getMoveComponentAt(this.focus);
-    console.log('focus', this.focus, 'mc', mc, 'mc2', mc2);
     this.focus = mc.history;
     mc.render();
     if (mc2 != null) {
       mc2.render();
     }
     this.renderBoardAfterMoves(this.focus);
+    let node = this.getNodeAfterMoves(this.focus);
+    if (node != null) {
+      $('#position-notes').val(node.notes);
+    }
   }
 
   clickMoveAt(history: string[]) {
