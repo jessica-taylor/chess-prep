@@ -214,11 +214,11 @@ class PrepView implements TreeEventHandlers {
   // public root: PrepNode = {expanded: true, moves: []};
   public focus: string[] = [];
 
+  private rootComponent: NodeComponent;
+
   constructor() {
     this.nodes[startFen] = {expanded: true, notes: '', moves: []};
-    // this.root.moves['e4'] = {expanded: false, recommended: true, moves: {}};
-    // this.root.moves['d4'] = {expanded: true, recommended: true, moves: {'Nf6': {expanded: false, recommended: false, moves: {}}}};
-    // this.focus = ['e4'];
+    this.rootComponent = new NodeComponent(this.nodes[startFen], [], this);
   }
 
   getNodeOfFen(fen: string): PrepNode {
@@ -380,8 +380,12 @@ class PrepView implements TreeEventHandlers {
   }
 
   clickMove(mc: MoveComponent) {
+    let mc2 = this.rootComponent.getMoveComponent(this.focus);
+    this.focus = mc.history;
     mc.render(this.focus);
-    // TODO render other focused thing
+    if (mc2 != null) {
+      mc2.render(this.focus);
+    }
     this.renderBoardAfterMoves(this.focus);
   }
 
