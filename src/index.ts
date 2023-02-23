@@ -85,6 +85,7 @@ function fenAfterMove(fen: string, move: string): string | null {
 interface TreeEventHandlers {
   clickMove(move: MoveComponent): void;
   getNodeAfterMoves(history: string[]): PrepNode | null;
+  getFocus(): string[];
 }
 
 class MoveComponent {
@@ -96,24 +97,27 @@ class MoveComponent {
     this.move = move;
     this.history = history;
     this.handlers = handlers;
-    this.jquery = $('<span class="prep-move">');
+    this.jquery = $('<span class="move-container">');
   }
 
-  render(focus: string[]) {
+  render() {
     this.jquery.empty();
-    this.jquery.text(this.move.algebraic);
-    if (JSON.stringify(focus) == JSON.stringify([...this.history, this.move.algebraic])) {
-      this.jquery.addClass('prep-focus');
+    let moveSpan = $('<span class="prep-move">');
+    this.jquery.append(moveSpan);
+    moveSpan.text(this.move.algebraic);
+    console.log('render move', this.handlers.getFocus(), this.history);
+    if (JSON.stringify(this.handlers.getFocus()) == JSON.stringify(this.history)) {
+      moveSpan.addClass('prep-focus');
     }
     if (this.move.recommended) {
-      this.jquery.addClass('prep-recommended');
+      moveSpan.addClass('prep-recommended');
     }
     if (this.history.length % 2 == 0) {
-      this.jquery.addClass('prep-white');
+      moveSpan.addClass('prep-white');
     } else {
-      this.jquery.addClass('prep-black');
+      moveSpan.addClass('prep-black');
     }
-    this.jquery.click(() => {
+    moveSpan.click(() => {
       this.handlers.clickMove(this)
     });
   }
@@ -139,7 +143,8 @@ class NodeComponent {
     this.jquery = $('<span class="prep-node">');
   }
 
-  render(focus: string[]) {
+
+  render() {
     this.moveNodeComponents = [];
     for (let move of this.node.moves) {
       let newHistory = [...this.history, move.algebraic];
@@ -158,19 +163,19 @@ class NodeComponent {
     let exp = $('<span class="prep-exp">').text(expText);
     exp.click(() => {
       this.node.expanded = !this.node.expanded;
-      this.render(focus);
+      this.render();
     });
 
     this.jquery.append(exp);
-    if (this.node.moves.length == 0) {
+    if (!this.node.expanded || this.node.moves.length == 0) {
       return;
     }
     if (this.node.moves.length == 1) {
       let mc = this.moveNodeComponents[0].moveComponent;
-      mc.render(focus);
+      mc.render();
       this.jquery.append(mc.jquery);
       let nc = this.moveNodeComponents[0].nodeComponent;
-      nc.render(focus);
+      nc.render();
       this.jquery.append(nc.jquery);
       return;
     }
@@ -179,10 +184,10 @@ class NodeComponent {
       let mnc = this.moveNodeComponents[i];
       let li = $('<li class="prep-li">');
       let mc = mnc.moveComponent;
-      mc.render(focus);
+      mc.render();
       li.append(mc.jquery);
       let nc = mnc.nodeComponent;
-      nc.render(focus);
+      nc.render();
       li.append(nc.jquery);
       ul.append(li);
     }
@@ -219,6 +224,10 @@ class PrepView implements TreeEventHandlers {
   constructor() {
     this.nodes[startFen] = {expanded: true, notes: '', moves: []};
     this.rootComponent = new NodeComponent(this.nodes[startFen], [], this);
+  }
+
+  getFocus(): string[] {
+    return this.focus;
   }
 
   getNodeOfFen(fen: string): PrepNode {
@@ -267,73 +276,73 @@ class PrepView implements TreeEventHandlers {
     }
   }
 
-  render(fen: string, history: string[]): JQuery {
-    let node = this.getNodeOfFen(fen);
-    let res = $('<div class="prep-node">');
-    if (!node.expanded) {
-      return res;
-    }
-    let ul = $('<ul class="prep-ul">');
-    for (let move of node.moves) {
-      let li = $('<li class="prep-li">');
-      var history2 = history;
-      var currFen = fen;
-      var error = false;
+  // render(fen: string, history: string[]): JQuery {
+  //   let node = this.getNodeOfFen(fen);
+  //   let res = $('<div class="prep-node">');
+  //   if (!node.expanded) {
+  //     return res;
+  //   }
+  //   let ul = $('<ul class="prep-ul">');
+  //   for (let move of node.moves) {
+  //     let li = $('<li class="prep-li">');
+  //     var history2 = history;
+  //     var currFen = fen;
+  //     var error = false;
 
-      while (true) {
-        let childFen = fenAfterMove(currFen, move.algebraic);
-        if (childFen == null) {
-          console.log('invalid child move', move.algebraic);
-          error = true;
-          break;
-        }
+  //     while (true) {
+  //       let childFen = fenAfterMove(currFen, move.algebraic);
+  //       if (childFen == null) {
+  //         console.log('invalid child move', move.algebraic);
+  //         error = true;
+  //         break;
+  //       }
 
-        let childNode = this.getNodeOfFen(childFen);
-        let moveText = $('<span class="prep-move">').text(move.algebraic);
-        li.append(moveText);
-        history2 = [...history2, move.algebraic];
-        if (JSON.stringify(this.focus) == JSON.stringify(history2)) {
-          moveText.addClass('prep-focus');
-        }
-        if (move.recommended) {
-          moveText.addClass('prep-recommended');
-        }
-        if (history2.length % 2 == 0) {
-          moveText.addClass('prep-black');
-        } else {
-          moveText.addClass('prep-white');
-        }
-        let history3 = history2;
-        moveText.click(() => {
-          this.focus = history3;
-          this.rerender(true);
-        });
+  //       let childNode = this.getNodeOfFen(childFen);
+  //       let moveText = $('<span class="prep-move">').text(move.algebraic);
+  //       li.append(moveText);
+  //       history2 = [...history2, move.algebraic];
+  //       if (JSON.stringify(this.focus) == JSON.stringify(history2)) {
+  //         moveText.addClass('prep-focus');
+  //       }
+  //       if (move.recommended) {
+  //         moveText.addClass('prep-recommended');
+  //       }
+  //       if (history2.length % 2 == 0) {
+  //         moveText.addClass('prep-black');
+  //       } else {
+  //         moveText.addClass('prep-white');
+  //       }
+  //       let history3 = history2;
+  //       moveText.click(() => {
+  //         this.focus = history3;
+  //         this.rerender(true);
+  //       });
 
-        let expText = $.isEmptyObject(childNode.moves) ? '\u25c6' : childNode.expanded ? '\u25BC' : '\u25B6';
-        let exp = $('<span class="prep-exp">').text(expText);
-        let childNode2 = childNode;
-        exp.click(() => {
-          childNode2.expanded = !childNode2.expanded;
-          this.rerender();
-        });
-        li.append(exp);
+  //       let expText = $.isEmptyObject(childNode.moves) ? '\u25c6' : childNode.expanded ? '\u25BC' : '\u25B6';
+  //       let exp = $('<span class="prep-exp">').text(expText);
+  //       let childNode2 = childNode;
+  //       exp.click(() => {
+  //         childNode2.expanded = !childNode2.expanded;
+  //         this.rerender();
+  //       });
+  //       li.append(exp);
 
-        currFen = childFen;
-        if (childNode.expanded && Object.keys(childNode.moves).length == 1) {
-          move = childNode.moves[0];
-        } else {
-          break;
-        }
-      }
+  //       currFen = childFen;
+  //       if (childNode.expanded && Object.keys(childNode.moves).length == 1) {
+  //         move = childNode.moves[0];
+  //       } else {
+  //         break;
+  //       }
+  //     }
 
-      if (!error) {
-        li.append(this.render(currFen, history2));
-      }
-      ul.append(li);
-    }
-    res.append(ul);
-    return res;
-  }
+  //     if (!error) {
+  //       li.append(this.render(currFen, history2));
+  //     }
+  //     ul.append(li);
+  //   }
+  //   res.append(ul);
+  //   return res;
+  // }
 
 
   renderBoardAfterMoves(moves: string[]) {
@@ -368,7 +377,9 @@ class PrepView implements TreeEventHandlers {
       startMove.addClass('prep-focus');
     }
     $('#prep-display').append(startMove);
-    $('#prep-display').append(this.render(startFen, []));
+    // $('#prep-display').append(this.render(startFen, []));
+    this.rootComponent.render();
+    $('#prep-display').append(this.rootComponent.jquery);
     this.renderBoardAfterMoves(this.focus);
 
     if (changeNotes) {
@@ -381,10 +392,11 @@ class PrepView implements TreeEventHandlers {
 
   clickMove(mc: MoveComponent) {
     let mc2 = this.rootComponent.getMoveComponent(this.focus);
+    console.log('focus', this.focus, 'mc2', mc2);
     this.focus = mc.history;
-    mc.render(this.focus);
+    mc.render();
     if (mc2 != null) {
-      mc2.render(this.focus);
+      mc2.render();
     }
     this.renderBoardAfterMoves(this.focus);
   }
