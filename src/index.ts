@@ -82,38 +82,107 @@ function fenAfterMove(fen: string, move: string): string | null {
   return simplifyFen(chess.fen());
 }
 
+interface TreeEventHandlers {
+  clickMove(move: MoveComponent): void;
+  toggleExpandNode(node: NodeComponent): void;
+  getNode(history: string[]): PrepNode;
+}
+
 class MoveComponent {
   public move: PrepMove;
   public history: string[];
-  private clickHandler: () => void;
-  constructor(move: PrepMove, history: string[], clickHandler: () => void) {
+  private handlers: TreeEventHandlers;
+  public jquery: JQuery;
+  constructor(move: PrepMove, history: string[], handlers: TreeEventHandlers) {
     this.move = move;
     this.history = history;
-    this.clickHandler = clickHandler;
+    this.handlers = handlers;
+    this.jquery = $('<span class="prep-move">');
   }
 
-  render(focus: string[]): JQuery {
-    let movetext = $('<span class="prep-move">').text(this.move.algebraic);
-    if (JSON.stringify(focus) == JSON.stringify(this.history)) {
-      movetext.addClass('prep-focus');
+  render(focus: string[]) {
+    this.jquery.empty();
+    this.jquery.text(this.move.algebraic);
+    if (JSON.stringify(focus) == JSON.stringify([...this.history, this.move.algebraic])) {
+      this.jquery.addClass('prep-focus');
     }
     if (this.move.recommended) {
-      movetext.addClass('prep-recommended');
+      this.jquery.addClass('prep-recommended');
     }
     if (this.history.length % 2 == 0) {
-      movetext.addClass('prep-black');
+      this.jquery.addClass('prep-white');
     } else {
-      movetext.addClass('prep-white');
+      this.jquery.addClass('prep-black');
     }
-    movetext.click(this.clickHandler);
-    return movetext;
+    this.jquery.click(() => {
+      this.handlers.clickMove(this)
+    });
   }
 }
 
+type MoveAndNodeComponents = {
+  moveComponent: MoveComponent;
+  nodeComponent: NodeComponent;
+};
+
 class NodeComponent {
   public node: PrepNode;
-  constructor(node: PrepNode) {
+  public history: string[];
+  private moveNodeComponents: MoveAndNodeComponents[] = [];
+  private handlers: TreeEventHandlers;
+  public jquery: JQuery;
+
+  constructor(node: PrepNode, history: string[], handlers: TreeEventHandlers) {
     this.node = node;
+    this.history = history;
+    this.handlers = handlers;
+    this.jquery = $('<span class="prep-node">');
+  }
+
+  render(focus: string[]) {
+    this.moveNodeComponents = [];
+    for (let move of this.node.moves) {
+      let newHistory = [...this.history, move.algebraic];
+      let mc = new MoveComponent(move, newHistory, this.handlers);
+      let nc = new NodeComponent(this.handlers.getNode(newHistory), newHistory, this.handlers);
+      this.moveNodeComponents.push({moveComponent: mc, nodeComponent: nc});
+    }
+
+    this.jquery.empty();
+
+    let expText = $.isEmptyObject(this.node.moves) ? '\u25c6' : this.node.expanded ? '\u25BC' : '\u25B6';
+    let exp = $('<span class="prep-exp">').text(expText);
+    exp.click(() => {
+      this.node.expanded = !this.node.expanded;
+      this.handlers.toggleExpandNode(this);
+    });
+
+    this.jquery.append(exp);
+    if (this.node.moves.length == 0) {
+      return;
+    }
+    if (this.node.moves.length == 1) {
+      let mc = this.moveNodeComponents[0].moveComponent;
+      mc.render(focus);
+      this.jquery.append(mc.jquery);
+      let nc = this.moveNodeComponents[0].nodeComponent;
+      nc.render(focus);
+      this.jquery.append(nc.jquery);
+      return;
+    }
+    let ul = $('<ul class="prep-ul">');
+    for (var i = 0; i < this.node.moves.length; ++i) {
+      let mnc = this.moveNodeComponents[i];
+      let li = $('<li class="prep-li">');
+      let mc = mnc.moveComponent;
+      mc.render(focus);
+      li.append(mc.jquery);
+      let nc = mnc.nodeComponent;
+      nc.render(focus);
+      li.append(nc.jquery);
+      ul.append(li);
+    }
+    this.jquery.append(ul);
   }
 }
 
