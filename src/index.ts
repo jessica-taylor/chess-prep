@@ -359,6 +359,13 @@ class PrepView implements TreeEventHandlers {
     }
   }
 
+  rerenderMoveAt(history: string[]) {
+    let mc = this.rootComponent.getMoveComponent(history);
+    if (mc != null) {
+      mc.render();
+    }
+  }
+
   deleteMove() {
     if (this.focus.length == 0) {
       return;
@@ -399,7 +406,7 @@ class PrepView implements TreeEventHandlers {
       return;
     }
     lastMove.recommended = !lastMove.recommended;
-    this.rerender();
+    this.rerenderMoveAt(this.focus);
   }
 
   swapMove(offset: number) {
