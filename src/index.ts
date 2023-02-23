@@ -84,7 +84,8 @@ function fenAfterMove(fen: string, move: string): string | null {
 
 interface TreeEventHandlers {
   clickMove(move: MoveComponent): void;
-  getNodeAfterMoves(history: string[]): PrepNode | null;
+  // getNodeAfterMoves(history: string[]): PrepNode | null;
+  getNodeOfFen(fen: string): PrepNode;
   getFocus(): string[];
 }
 
@@ -133,12 +134,14 @@ class NodeComponent {
   public history: string[];
   private moveNodeComponents: MoveAndNodeComponents[] = [];
   private handlers: TreeEventHandlers;
+  private fen: string;
   public jquery: JQuery;
 
-  constructor(node: PrepNode, history: string[], handlers: TreeEventHandlers) {
+  constructor(node: PrepNode, history: string[], fen: string, handlers: TreeEventHandlers) {
     this.node = node;
     this.history = history;
     this.handlers = handlers;
+    this.fen = fen;
     this.jquery = $('<span class="prep-node">');
   }
 
@@ -148,12 +151,17 @@ class NodeComponent {
     if (this.node.expanded) {
       for (let move of this.node.moves) {
         let newHistory = [...this.history, move.algebraic];
+        let fen = fenAfterMove(this.fen, move.algebraic);
+        if (fen == null) {
+          console.log('invalid move', move.algebraic);
+          fen = startFen;
+        }
         let mc = new MoveComponent(move, newHistory, this.handlers);
-        let node = this.handlers.getNodeAfterMoves(newHistory);
+        let node = this.handlers.getNodeOfFen(fen);
         if (node == null) {
           node = {expanded: false, notes: '', moves: []};
         }
-        let nc = new NodeComponent(node, newHistory, this.handlers);
+        let nc = new NodeComponent(node, newHistory, fen, this.handlers);
         this.moveNodeComponents.push({moveComponent: mc, nodeComponent: nc});
       }
     }
@@ -234,7 +242,7 @@ class PrepView implements TreeEventHandlers {
   constructor() {
     this.nodes[startFen] = {expanded: true, notes: '', moves: []};
     this.startMove = new MoveComponent({algebraic: 'start', recommended: false}, [], this);
-    this.rootComponent = new NodeComponent(this.nodes[startFen], [], this);
+    this.rootComponent = new NodeComponent(this.nodes[startFen], [], startFen, this);
   }
 
   getFocus(): string[] {
@@ -316,7 +324,7 @@ class PrepView implements TreeEventHandlers {
     $('#prep-display').empty();
     this.startMove.render();
     $('#prep-display').append(this.startMove.jquery);
-    this.rootComponent = new NodeComponent(this.nodes[startFen], [], this);
+    this.rootComponent = new NodeComponent(this.nodes[startFen], [], startFen, this);
     this.rootComponent.render();
     $('#prep-display').append(this.rootComponent.jquery);
     this.renderBoardAfterMoves(this.focus);
