@@ -82,6 +82,41 @@ function fenAfterMove(fen: string, move: string): string | null {
   return simplifyFen(chess.fen());
 }
 
+class MoveComponent {
+  public move: PrepMove;
+  public history: string[];
+  private clickHandler: () => void;
+  constructor(move: PrepMove, history: string[], clickHandler: () => void) {
+    this.move = move;
+    this.history = history;
+    this.clickHandler = clickHandler;
+  }
+
+  render(focus: string[]): JQuery {
+    let movetext = $('<span class="prep-move">').text(this.move.algebraic);
+    if (JSON.stringify(focus) == JSON.stringify(this.history)) {
+      movetext.addClass('prep-focus');
+    }
+    if (this.move.recommended) {
+      movetext.addClass('prep-recommended');
+    }
+    if (this.history.length % 2 == 0) {
+      movetext.addClass('prep-black');
+    } else {
+      movetext.addClass('prep-white');
+    }
+    movetext.click(this.clickHandler);
+    return movetext;
+  }
+}
+
+class NodeComponent {
+  public node: PrepNode;
+  constructor(node: PrepNode) {
+    this.node = node;
+  }
+}
+
 class PrepView {
   public nodes: Record<string, PrepNode> = {};
   // public root: PrepNode = {expanded: true, moves: []};
