@@ -7,7 +7,7 @@
   </head>
   <body>
     <div id="left">
-      <div id="board" style="width: 400px"></div>
+      <div id="board" style="width: 30em"></div>
       <hr/>
       <span>Promote to:</span><select id="promote-select">
         <option value="q">Queen</option>
@@ -32,6 +32,10 @@
       <input type="submit" id="save-notes-button" value="Save"/>
       <br/>
       <textarea id="position-notes" name="position-notes" rows="10" cols="60"></textarea>
+      <br/>
+      <div class="tooltip">&#x2753;
+        <span class="tooltiptext">A tool for chess prep. Make moves to change the position and add branches to the tree. Click parts of the tree on the left to focus, showing the board of that position. Click arrows to expand/collapse. Underlined moves are considered recommended; non-recommended moves can be added to show good responses to them. Positions (not moves!) can be commented on; this tool detects transpositions. Use ctrl-arrow keys to move around. Export/import as JSON.</span>
+      </div>
     </div>
     <div id="right">
       <div id="prep-display"></div>
