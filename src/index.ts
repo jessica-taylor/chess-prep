@@ -352,6 +352,13 @@ class PrepView implements TreeEventHandlers {
     }
   }
 
+  rerenderNodeAt(history: string[]) {
+    let nc = this.rootComponent.getNodeComponent(history);
+    if (nc != null) {
+      nc.render();
+    }
+  }
+
   deleteMove() {
     if (this.focus.length == 0) {
       return;
@@ -373,8 +380,8 @@ class PrepView implements TreeEventHandlers {
       }
     }
     secondLast.moves.splice(lastMoveIx, 1);
-    this.focus = this.focus.slice(0, this.focus.length - 1);
-    this.rerender(true);
+    this.clickMoveAt(this.focus.slice(0, -1));
+    this.rerenderNodeAt(this.focus);
   }
 
   toggleRecommended() {
