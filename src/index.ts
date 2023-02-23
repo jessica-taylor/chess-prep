@@ -105,7 +105,6 @@ class MoveComponent {
     let moveSpan = $('<span class="prep-move">');
     this.jquery.append(moveSpan);
     moveSpan.text(this.move.algebraic);
-    console.log('render move', this.handlers.getFocus(), this.history);
     if (JSON.stringify(this.handlers.getFocus()) == JSON.stringify(this.history)) {
       moveSpan.addClass('prep-focus');
     }
@@ -316,15 +315,26 @@ class PrepView implements TreeEventHandlers {
     }
   }
 
+  getMoveComponentAt(history: string[]) : MoveComponent | null {
+    return history.length == 0 ? this.startMove : this.rootComponent.getMoveComponent(history);
+  }
+
   clickMove(mc: MoveComponent) {
-    let mc2 = this.focus.length == 0 ? this.startMove : this.rootComponent.getMoveComponent(this.focus);
-    console.log('focus', this.focus, 'mc2', mc2);
+    let mc2 = this.getMoveComponentAt(this.focus);
+    console.log('focus', this.focus, 'mc', mc, 'mc2', mc2);
     this.focus = mc.history;
     mc.render();
     if (mc2 != null) {
       mc2.render();
     }
     this.renderBoardAfterMoves(this.focus);
+  }
+
+  clickMoveAt(history: string[]) {
+    let mc = this.getMoveComponentAt(history);
+    if (mc != null) {
+      this.clickMove(mc);
+    }
   }
 
   deleteMove() {
@@ -431,25 +441,21 @@ class PrepView implements TreeEventHandlers {
     }
     let last = this.getNodeAfterMoves(this.focus);
     if (direction == 'left') {
-      this.focus = this.focus.slice(0, -1);
-      this.rerender();
+      this.clickMoveAt(this.focus.slice(0, -1));
     } else if (direction == 'right') {
       if (last != null && last.moves.length > 0) {
-        this.focus = [...this.focus, last.moves[0].algebraic];
-        this.rerender();
+        this.clickMoveAt([...this.focus, last.moves[0].algebraic]);
       }
     } else if (direction == 'up') {
       let moveIx = lastMoveIx - 1;
       if (moveIx >= 0 && secondLast != null) {
-        this.focus = [...this.focus.slice(0, -1), secondLast.moves[moveIx].algebraic];
-        this.rerender();
+        this.clickMoveAt([...this.focus.slice(0, -1), secondLast.moves[moveIx].algebraic]);
       }
     } else if (direction == 'down') {
       if (lastMoveIx != -1 && secondLast != null) {
         let moveIx = lastMoveIx + 1;
         if (moveIx < secondLast.moves.length) {
-          this.focus = [...this.focus.slice(0, -1), secondLast.moves[moveIx].algebraic];
-          this.rerender();
+          this.clickMoveAt([...this.focus.slice(0, -1), secondLast.moves[moveIx].algebraic]);
         }
       }
     }
