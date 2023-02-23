@@ -278,75 +278,6 @@ class PrepView implements TreeEventHandlers {
     }
   }
 
-  // render(fen: string, history: string[]): JQuery {
-  //   let node = this.getNodeOfFen(fen);
-  //   let res = $('<div class="prep-node">');
-  //   if (!node.expanded) {
-  //     return res;
-  //   }
-  //   let ul = $('<ul class="prep-ul">');
-  //   for (let move of node.moves) {
-  //     let li = $('<li class="prep-li">');
-  //     var history2 = history;
-  //     var currFen = fen;
-  //     var error = false;
-
-  //     while (true) {
-  //       let childFen = fenAfterMove(currFen, move.algebraic);
-  //       if (childFen == null) {
-  //         console.log('invalid child move', move.algebraic);
-  //         error = true;
-  //         break;
-  //       }
-
-  //       let childNode = this.getNodeOfFen(childFen);
-  //       let moveText = $('<span class="prep-move">').text(move.algebraic);
-  //       li.append(moveText);
-  //       history2 = [...history2, move.algebraic];
-  //       if (JSON.stringify(this.focus) == JSON.stringify(history2)) {
-  //         moveText.addClass('prep-focus');
-  //       }
-  //       if (move.recommended) {
-  //         moveText.addClass('prep-recommended');
-  //       }
-  //       if (history2.length % 2 == 0) {
-  //         moveText.addClass('prep-black');
-  //       } else {
-  //         moveText.addClass('prep-white');
-  //       }
-  //       let history3 = history2;
-  //       moveText.click(() => {
-  //         this.focus = history3;
-  //         this.rerender(true);
-  //       });
-
-  //       let expText = $.isEmptyObject(childNode.moves) ? '\u25c6' : childNode.expanded ? '\u25BC' : '\u25B6';
-  //       let exp = $('<span class="prep-exp">').text(expText);
-  //       let childNode2 = childNode;
-  //       exp.click(() => {
-  //         childNode2.expanded = !childNode2.expanded;
-  //         this.rerender();
-  //       });
-  //       li.append(exp);
-
-  //       currFen = childFen;
-  //       if (childNode.expanded && Object.keys(childNode.moves).length == 1) {
-  //         move = childNode.moves[0];
-  //       } else {
-  //         break;
-  //       }
-  //     }
-
-  //     if (!error) {
-  //       li.append(this.render(currFen, history2));
-  //     }
-  //     ul.append(li);
-  //   }
-  //   res.append(ul);
-  //   return res;
-  // }
-
-
   renderBoardAfterMoves(moves: string[]) {
     (chessboard as any).default('board', {
       draggable: true,
@@ -370,14 +301,6 @@ class PrepView implements TreeEventHandlers {
 
   rerender(changeNotes: boolean = false) {
     $('#prep-display').empty();
-    // let startMove = $('<span class="prep-move">').text('start');
-    // startMove.click(() => {
-    //   this.focus = [];
-    //   this.rerender(true);
-    // });
-    // if (this.focus.length == 0) {
-    //   startMove.addClass('prep-focus');
-    // }
     this.startMove.render();
     $('#prep-display').append(this.startMove.jquery);
     // $('#prep-display').append(this.render(startFen, []));
