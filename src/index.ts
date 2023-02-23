@@ -112,7 +112,7 @@ class MoveComponent {
     if (this.move.recommended) {
       moveSpan.addClass('prep-recommended');
     }
-    if (this.history.length % 2 == 0) {
+    if (this.history.length % 2 == 1) {
       moveSpan.addClass('prep-white');
     } else {
       moveSpan.addClass('prep-black');
@@ -219,10 +219,12 @@ class PrepView implements TreeEventHandlers {
   // public root: PrepNode = {expanded: true, moves: []};
   public focus: string[] = [];
 
+  private startMove: MoveComponent;
   private rootComponent: NodeComponent;
 
   constructor() {
     this.nodes[startFen] = {expanded: true, notes: '', moves: []};
+    this.startMove = new MoveComponent({algebraic: 'start', recommended: false}, [], this);
     this.rootComponent = new NodeComponent(this.nodes[startFen], [], this);
   }
 
@@ -368,15 +370,16 @@ class PrepView implements TreeEventHandlers {
 
   rerender(changeNotes: boolean = false) {
     $('#prep-display').empty();
-    let startMove = $('<span class="prep-move">').text('start');
-    startMove.click(() => {
-      this.focus = [];
-      this.rerender(true);
-    });
-    if (this.focus.length == 0) {
-      startMove.addClass('prep-focus');
-    }
-    $('#prep-display').append(startMove);
+    // let startMove = $('<span class="prep-move">').text('start');
+    // startMove.click(() => {
+    //   this.focus = [];
+    //   this.rerender(true);
+    // });
+    // if (this.focus.length == 0) {
+    //   startMove.addClass('prep-focus');
+    // }
+    this.startMove.render();
+    $('#prep-display').append(this.startMove.jquery);
     // $('#prep-display').append(this.render(startFen, []));
     this.rootComponent.render();
     $('#prep-display').append(this.rootComponent.jquery);
@@ -391,7 +394,7 @@ class PrepView implements TreeEventHandlers {
   }
 
   clickMove(mc: MoveComponent) {
-    let mc2 = this.rootComponent.getMoveComponent(this.focus);
+    let mc2 = this.focus.length == 0 ? this.startMove : this.rootComponent.getMoveComponent(this.focus);
     console.log('focus', this.focus, 'mc2', mc2);
     this.focus = mc.history;
     mc.render();
