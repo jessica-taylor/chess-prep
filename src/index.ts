@@ -439,52 +439,54 @@ class PrepView implements TreeEventHandlers {
 }
 
 function main() {
-  let testComponent = new Main({target: document.body});
   $(function() {
-    let view = new PrepView();
-    view.rerender();
-    $('#delete-button').click(function() {
-      view.deleteMove();
-    });
-    $('#up-button').click(function() {
-      view.swapMove(-1);
-    });
-    $('#down-button').click(function() {
-      view.swapMove(1);
-    });
-    $('#recommended-button').click(function() {
-      view.toggleRecommended();
-    });
-    $('#export-button').click(function() {
-      view.exportFile();
-    });
-    $('#import-file').change(function() {
-      ((this as any).files[0] as File).text().then((text) => view.importFile(text));
-    });
-    $('#save-notes-button').click(function() {
-      let node = view.getNodeAfterMoves(view.focus);
-      if (node != null) {
-        node.notes = $('#position-notes').val() as string;
-        view.rerenderMoveAt(view.focus);
-      }
-    });
-    $(document).keydown(function(event) {
-      if (event.ctrlKey) {
-        if (event.key == 'ArrowLeft') {
-          view.focusArrow('left');
-        } else if (event.key == 'ArrowRight') {
-          view.focusArrow('right');
-        } else if (event.key == 'ArrowUp') {
-          view.focusArrow('up');
-        } else if (event.key == 'ArrowDown') {
-          view.focusArrow('down');
-        }
-      }
-    });
-    $(window).on('beforeunload', function() {
-      return 'Are you sure you want to leave?';
-    });
+    let testComponent = new Main({target: document.body});
   });
+  // $(function() {
+  //   let view = new PrepView();
+  //   view.rerender();
+  //   $('#delete-button').click(function() {
+  //     view.deleteMove();
+  //   });
+  //   $('#up-button').click(function() {
+  //     view.swapMove(-1);
+  //   });
+  //   $('#down-button').click(function() {
+  //     view.swapMove(1);
+  //   });
+  //   $('#recommended-button').click(function() {
+  //     view.toggleRecommended();
+  //   });
+  //   $('#export-button').click(function() {
+  //     view.exportFile();
+  //   });
+  //   $('#import-file').change(function() {
+  //     ((this as any).files[0] as File).text().then((text) => view.importFile(text));
+  //   });
+  //   $('#save-notes-button').click(function() {
+  //     let node = view.getNodeAfterMoves(view.focus);
+  //     if (node != null) {
+  //       node.notes = $('#position-notes').val() as string;
+  //       view.rerenderMoveAt(view.focus);
+  //     }
+  //   });
+  //   $(document).keydown(function(event) {
+  //     if (event.ctrlKey) {
+  //       if (event.key == 'ArrowLeft') {
+  //         view.focusArrow('left');
+  //       } else if (event.key == 'ArrowRight') {
+  //         view.focusArrow('right');
+  //       } else if (event.key == 'ArrowUp') {
+  //         view.focusArrow('up');
+  //       } else if (event.key == 'ArrowDown') {
+  //         view.focusArrow('down');
+  //       }
+  //     }
+  //   });
+  //   $(window).on('beforeunload', function() {
+  //     return 'Are you sure you want to leave?';
+  //   });
+  // });
 }
 
 main();
