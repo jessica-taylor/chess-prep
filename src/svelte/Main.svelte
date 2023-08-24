@@ -1,4 +1,4 @@
-
+<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
 
 <script lang="ts">
   import { onMount } from 'svelte';
@@ -150,6 +150,32 @@
     clickMoveAt(focus.slice(0, -1));
   }
 
+
+  export function swapMove(offset: number) {
+    if (focus.length == 0) {
+      return;
+    }
+    let secondLast = getNodeAfterMoves(focus.slice(0, -1));
+    if (secondLast == null) {
+      console.log('failed to swap move', focus);
+      return;
+    }
+    let lastMoveIx = nodeGetMoveIx(secondLast, focus[focus.length - 1]);
+    if (lastMoveIx == -1) {
+      console.log("failed to swap move", focus);
+      return;
+    }
+    let swapIx = lastMoveIx + offset;
+    if (swapIx < 0 || swapIx >= secondLast.moves.length) {
+      return;
+    }
+    let temp = secondLast.moves[lastMoveIx];
+    secondLast.moves[lastMoveIx] = secondLast.moves[swapIx];
+    secondLast.moves[swapIx] = temp;
+    setNodeAfterMoves(focus.slice(0, -1), secondLast);
+    rerender();
+  }
+
   // export function clickMove(mc: MoveComponent) {
   //   let mc2 = getMoveComponentAt(focus);
   //   focus = mc.history;
@@ -165,12 +191,12 @@
   //   console.log('focus is', focus);
   // }
 
-  function initializeChessboard(focus: string[]) {
+  function initializeChessboard(history: string[]) {
     (chessboard as any).default('board', {
       draggable: true,
-      position: fenAfterMoves(focus),
+      position: fenAfterMoves(history),
       onDrop: (source: string, target: string, piece: string, newPos: any, oldPos: any, orientation: any) => {
-        let oldState = chessStateAfterMoves(focus);
+        let oldState = chessStateAfterMoves(history);
         let pmove: PartialMove = {from: source, to: target};
         if (piece[1] == 'P') {
           pmove.promotion = promotionChoice;
@@ -179,9 +205,9 @@
         if (move == null) {
           return 'snapback';
         }
-        let newFocus = [...focus, move.san];
+        let newFocus = [...history, move.san];
         expandInto(newFocus);
-        // let parentNode = rootNode.getNodeComponent(focus);
+        // let parentNode = rootNode.getNodeComponent(history);
         // if (parentNode != null) {
         //   parentNode.refreshHandlers();
         // }
@@ -218,8 +244,8 @@
     <br/>
     <input type="submit" id="delete-button" value="Delete move" on:click={deleteMove}/>
     <br/>
-    <span id="up-button">&#11014;&#65039;</span>
-    <span id="down-button">&#11015;&#65039;</span>
+    <span id="up-button" on:click={() => swapMove(-1)}>&#11014;&#65039;</span>
+    <span id="down-button" on:click={() => swapMove(1)}>&#11015;&#65039;</span>
     <br/>
     <input type="submit" id="export-button" value="Export as file"/>
     <br/>
