@@ -13,6 +13,9 @@
   let rootNode: Node;
   let focus: string[] = [];
   let promotionChoice = 'q';
+  let positionNotesChanged: boolean = false;
+  let positionNotes: string = '';
+  $: if(!positionNotesChanged) positionNotes = getNodeAfterMoves(focus).notes;
 
   nodes[startFen] = {expanded: true, notes: '', moves: []};
 
@@ -34,6 +37,7 @@
 
   export function clickMoveAt(history: string[]) {
     focus = history;
+    positionNotesChanged = false;
     rerender();
     // let mc = getMoveComponentAt(history);
     // if (mc != null) {
@@ -176,6 +180,19 @@
     rerender();
   }
 
+  function handleNotesChange() {
+    positionNotesChanged = true;
+  }
+
+  function saveNotes() {
+    let node = getNodeAfterMoves(focus);
+    if (node != null) {
+      node.notes = positionNotes;
+      setNodeAfterMoves(focus, node);
+      rerender();
+    }
+  }
+
   // export function clickMove(mc: MoveComponent) {
   //   let mc2 = getMoveComponentAt(focus);
   //   focus = mc.history;
@@ -226,6 +243,7 @@
 
 
 
+
 </script>
 
 <main>
@@ -253,9 +271,9 @@
     <input type="file" name="import-file" id="import-file" accept=".json,.txt"/>
     <br/>
     <label for="position-notes">Comment on this position</label>
-    <input type="submit" id="save-notes-button" value="Save"/>
+    <input type="submit" id="save-notes-button" value="Save" on:click={saveNotes}/>
     <br/>
-    <textarea id="position-notes" name="position-notes" rows="10" cols="60"></textarea>
+    <textarea id="position-notes" name="position-notes" rows="10" cols="60" bind:value={positionNotes} on:input={handleNotesChange}></textarea>
     <br/>
     <a href="https://github.com/jessica-taylor/chess-prep">View this project on GitHub</a>
     <br/>
