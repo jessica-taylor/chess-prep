@@ -2,7 +2,7 @@
 
 <script lang="ts">
   import { onMount } from 'svelte';
-  import {PrepMove, PrepNode, startPrepMove, TreeEventHandlers, fenAfterMove, fenAfterMoves, startFen, chessStateAfterMoves, nodeGetMove} from '../types';
+  import {PrepMove, PrepNode, startPrepMove, TreeEventHandlers, fenAfterMove, fenAfterMoves, startFen, chessStateAfterMoves, nodeGetMove, nodeGetMoveIx} from '../types';
   import Move from './Move.svelte';
   import Node from './Node.svelte';
 
@@ -12,6 +12,7 @@
   let startMove: Move;
   let rootNode: Node;
   let focus: string[] = [];
+  let promotionChoice = 'q';
 
   nodes[startFen] = {expanded: true, notes: '', moves: []};
 
@@ -32,7 +33,6 @@
   }
 
   export function clickMoveAt(history: string[]) {
-    console.log('clickMoveAt', history);
     focus = history;
     rerender();
     // let mc = getMoveComponentAt(history);
@@ -119,12 +119,35 @@
       console.log("failed to change recommended move", focus);
       return;
     }
-    console.log('old lastMove', lastMove);
-    // TODO set nodes...
     lastMove.recommended = !lastMove.recommended;
-    console.log('new lastMove', lastMove);
     setNodeAfterMoves(focus.slice(0, -1), secondLast);
     rerender();
+  }
+
+
+  export function deleteMove() {
+    if (focus.length == 0) {
+      return;
+    }
+    let secondLast = getNodeAfterMoves(focus.slice(0, -1));
+    if (secondLast == null) {
+      console.log('failed to delete move', focus);
+      return;
+    }
+    let lastMoveIx = nodeGetMoveIx(secondLast, focus[focus.length - 1]);
+    if (lastMoveIx == -1) {
+      console.log("failed to delete move", focus);
+      return;
+    }
+    let last = getNodeAfterMoves(focus);
+    if (last != null && (last.moves.length > 0 || last.notes != '')) {
+      if (!confirm('This move has children or notes. Are you sure you want to delete it?')) {
+        return;
+      }
+    }
+    secondLast.moves.splice(lastMoveIx, 1);
+    setNodeAfterMoves(focus.slice(0, -1), secondLast);
+    clickMoveAt(focus.slice(0, -1));
   }
 
   // export function clickMove(mc: MoveComponent) {
@@ -150,8 +173,7 @@
         let oldState = chessStateAfterMoves(focus);
         let pmove: PartialMove = {from: source, to: target};
         if (piece[1] == 'P') {
-          // TODO
-          // pmove.promotion = $('#promote-select').val() as PieceSymbol;
+          pmove.promotion = promotionChoice;
         }
         let move = oldState.move(pmove);
         if (move == null) {
@@ -185,7 +207,7 @@
   <div id="left">
     <div id="board" style="width: 30em"></div>
     <hr/>
-    <span>Promote to:</span><select id="promote-select">
+    <span>Promote to:</span><select id="promote-select" bind:value={promotionChoice}>
       <option value="q">Queen</option>
       <option value="r">Rook</option>
       <option value="b">Bishop</option>
@@ -194,7 +216,7 @@
     <br/>
     <input type="submit" id="recommended-button" value="Toggle recommended" on:click={toggleRecommended}/>
     <br/>
-    <input type="submit" id="delete-button" value="Delete move"/>
+    <input type="submit" id="delete-button" value="Delete move" on:click={deleteMove}/>
     <br/>
     <span id="up-button">&#11014;&#65039;</span>
     <span id="down-button">&#11015;&#65039;</span>
