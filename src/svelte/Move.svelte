@@ -5,5 +5,9 @@ import { Node } from './Node.svelte';
   export let move: PrepMove = startPrepMove;
 </script>
 <main>
-  <span>{move.algebraic}</span>
+  <span class="move-container">
+    <span class="prep-move">
+      {move.algebraic}
+    </span>
+  </span>
 </main>

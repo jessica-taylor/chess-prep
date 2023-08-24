@@ -7,7 +7,7 @@ import {Chess, PartialMove, PieceSymbol} from 'chess.ts';
 
 import * as chessboard from 'chessboardjs';
 
-import {PrepMove, PrepNode, startPrepMove, startFen} from './types';
+import {PrepMove, PrepNode, startPrepMove, startFen, TreeEventHandlers} from './types';
 import TestComponent from './svelte/TestComponent.svelte';
 
 
@@ -76,13 +76,6 @@ function fenAfterMove(fen: string, move: string): string | null {
   return simplifyFen(chess.fen());
 }
 
-interface TreeEventHandlers {
-  clickMove(move: MoveComponent): void;
-  // getNodeAfterMoves(history: string[]): PrepNode | null;
-  getNodeOfFen(fen: string): PrepNode;
-  getFocus(): string[];
-}
-
 class MoveComponent {
   public move: PrepMove;
   public history: string[];
@@ -112,7 +105,7 @@ class MoveComponent {
       moveSpan.addClass('prep-black');
     }
     moveSpan.click(() => {
-      this.handlers.clickMove(this)
+      this.handlers.clickMoveAt(this.history)
     });
     let fenAfter = fenAfterMoves(this.history);
     if (fenAfter != null) {
