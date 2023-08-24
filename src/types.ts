@@ -15,6 +15,7 @@ export type PrepNode = {
 
 export type PrepMerkle = {
   node: PrepNode,
+  fen: string,
   childHashes: string[]
 };
 

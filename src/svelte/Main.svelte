@@ -45,7 +45,7 @@
           childHashes.push(buildMerkleTree(nodes, newFen, cache));
         }
       }
-      merkle = {node, childHashes};
+      merkle = {node, fen, childHashes};
     }
     let hash = hashValue(cjsonStringify(merkle));
     cache[hash] = merkle;
@@ -102,6 +102,7 @@
   }
 
   export function getNodeAfterMoves(moves: string[]): PrepNode | null {
+    console.log('getNodeAfterMoves', moves);
     let fen = getFenAfterMoves(moves);
     if (fen == null) {
       return null;
