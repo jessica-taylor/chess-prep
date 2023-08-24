@@ -2,3 +2,4 @@ node_modules
 src/*.js
 static/js
 static/chessboard.css
+dist/
