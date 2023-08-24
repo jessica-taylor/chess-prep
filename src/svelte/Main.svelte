@@ -32,7 +32,6 @@
 
 
   function buildMerkleTree(nodes: Record<string, PrepNode>, fen: string | null, cache): string {
-    console.log('buildMerkleTree', fen);
     let merkle;
     if (fen == null) {
       merkle = {node: {expanded: true, notes: '', moves: []}, childHashes: []};
@@ -57,7 +56,6 @@
   $: {
     merkleCache = {};
     rootHash = buildMerkleTree(nodes, startFen, merkleCache);
-    console.log('rootHash', rootHash);
   }
 
   function getMerkleOfHash(hash: string): PrepMerkle | null {
@@ -107,7 +105,6 @@
   }
 
   export function getNodeAfterMoves(moves: string[]): PrepNode | null {
-    console.log('getNodeAfterMoves', moves);
     let fen = getFenAfterMoves(moves);
     if (fen == null) {
       return null;
@@ -270,7 +267,6 @@
 
   onMount(() => {
     const handleKeydown = (event) => {
-      console.log('handleKeyDown', event);
       if (event.ctrlKey) {
         switch (event.key) {
           case 'ArrowLeft':

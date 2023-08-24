@@ -13,11 +13,9 @@
   let node;
   let expanded;
   $: {
-    console.log('hash changed:', hash);
     merkleNode = handlers.getMerkleOfHash(hash) || {node: {expanded: true, moves: [], notes: 'help me!'}, childHashes: []};
   }
   $: node = merkleNode.node;
-  $: console.log('history = ', history, 'node =', node, 'merkleNode = ', merkleNode);
 
   let childMoves: Move[] = [];
   let childNodes: Node[] = [];
@@ -47,7 +45,6 @@
 
   export function getNodeComponent(postfix: string[]): Node | null {
     var node: NodeComponent = self;
-    console.log('this node component is', node, 'postfix', postfix);
     for (let nextMove of postfix) {
       if (node.childNodes.length == 0) {
         return null;
@@ -62,17 +59,14 @@
   }
 
   export function getMoveComponent(postfix: string[]): Move | null {
-    console.log('getMoveComponent', postfix);
     if (postfix.length == 0) {
       return null;
     }
     var node = getNodeComponent(postfix.slice(0, -1));
-    console.log('node is', node);
     if (node == null || node.childMoves.length == 0) {
       return null;
     }
     let ix = nodeGetMoveIx(node.node, postfix[postfix.length - 1]);
-    console.log('ix is', ix);
     if (ix == -1) {
       return null;
     }
