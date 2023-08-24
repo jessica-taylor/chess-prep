@@ -193,6 +193,36 @@
     }
   }
 
+
+  export function exportFile() {
+    let content = JSON.stringify(nodes);
+
+    // Create element with <a> tag
+    const link = document.createElement("a");
+    
+    // Create a blog object with the file content which you want to add to the file
+    const file = new Blob([content], { type: 'text/plain' });
+    
+    // Add file content in the object URL
+    link.href = URL.createObjectURL(file);
+    
+    // Add file name
+    link.download = "prep.json";
+    
+    // Add click event to <a> tag to save file.
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
+
+  export function importFile(event) {
+    (event.target.files[0] as File).text().then((text) => {
+      nodes = JSON.parse(text) as Record<string, PrepNode>;
+      focus = [];
+      rerender();
+    });
+  }
+
   onMount(() => {
     const handleKeydown = (event) => {
       console.log('handleKeyDown', event);
@@ -324,10 +354,10 @@
     <span id="up-button" on:click={() => swapMove(-1)}>&#11014;&#65039;</span>
     <span id="down-button" on:click={() => swapMove(1)}>&#11015;&#65039;</span>
     <br/>
-    <input type="submit" id="export-button" value="Export as file"/>
+    <input type="submit" id="export-button" value="Export as file" on:click={exportFile}/>
     <br/>
     <label for="import-file">Import file</label>
-    <input type="file" name="import-file" id="import-file" accept=".json,.txt"/>
+    <input type="file" name="import-file" id="import-file" accept=".json,.txt" on:change={importFile}/>
     <br/>
     <label for="position-notes">Comment on this position</label>
     <input type="submit" id="save-notes-button" value="Save" on:click={saveNotes}/>
