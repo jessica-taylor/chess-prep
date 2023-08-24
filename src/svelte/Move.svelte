@@ -5,6 +5,7 @@
   export let handlers: TreeEventHandlers;
   export let move: PrepMove = startPrepMove;
   export let history: string[] = [];
+  export let focus: string[] = [];
 
   let isFocused: boolean = false;
   let fenAfter: string = startFen;
@@ -14,7 +15,7 @@
     moves: []
   };
 
-  $: isFocused = JSON.stringify(handlers.getFocus()) == JSON.stringify(history);
+  $: isFocused = JSON.stringify(focus) == JSON.stringify(history);
   $: fenAfter = fenAfterMoves(history);
   $: nodeAfter = handlers.getNodeOfFen(fenAfter);
 

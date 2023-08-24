@@ -19,7 +19,7 @@ export interface TreeEventHandlers {
   clickMoveAt(history: string[]): void;
   // getNodeAfterMoves(history: string[]): PrepNode | null;
   getNodeOfFen(fen: string): PrepNode;
-  getFocus(): string[];
+  // getFocus(): string[];
 }
 
 export function getMoveIx(moves: PrepMove[], algebraic: string): number{

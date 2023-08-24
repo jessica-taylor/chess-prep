@@ -12,6 +12,7 @@
   };
   export let history: string[] = [];
   export let fen: string = startFen;
+  export let focus: string[] = [];
 
   let childMoves: Move[] = [];
   let childNodes: Node[] = [];
@@ -67,14 +68,14 @@
   </span>
   {#if node.expanded && node.moves.length > 0}
     {#if node.moves.length == 1}
-      <Move bind:this={childMoves[0]} handlers={handlers} move={node.moves[0]} history={[...history, node.moves[0].algebraic]}/>
-      <Node bind:this={childNodes[0]} handlers={handlers} node={handlers.getNodeOfFen(fenAfterMove(fen, node.moves[0].algebraic) || startFen)} history={[...history, node.moves[0].algebraic]} fen={fenAfterMove(fen, node.moves[0].algebraic) || startFen}/>
+      <Move bind:this={childMoves[0]} handlers={handlers} focus={focus} move={node.moves[0]} history={[...history, node.moves[0].algebraic]}/>
+      <Node bind:this={childNodes[0]} handlers={handlers} focus={focus} node={handlers.getNodeOfFen(fenAfterMove(fen, node.moves[0].algebraic) || startFen)} history={[...history, node.moves[0].algebraic]} fen={fenAfterMove(fen, node.moves[0].algebraic) || startFen}/>
     {:else}
       <ul class="prep-ul">
         {#each node.moves as move, ix}
           <li class="prep-li">
-            <Move bind:this={childMoves[ix]} handlers={handlers} move={move} history={[...history, move.algebraic]}/>
-            <Node bind:this={childNodes[ix]} handlers={handlers} node={handlers.getNodeOfFen(fenAfterMove(fen, move.algebraic) || startFen)} history={[...history, move.algebraic]} fen={fenAfterMove(fen, move.algebraic) || startFen}/>
+            <Move bind:this={childMoves[ix]} handlers={handlers} focus={focus} move={move} history={[...history, move.algebraic]}/>
+            <Node bind:this={childNodes[ix]} handlers={handlers} focus={focus} node={handlers.getNodeOfFen(fenAfterMove(fen, move.algebraic) || startFen)} history={[...history, move.algebraic]} fen={fenAfterMove(fen, move.algebraic) || startFen}/>
           </li>
         {/each}
       </ul>

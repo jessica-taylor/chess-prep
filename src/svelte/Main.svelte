@@ -19,10 +19,6 @@
 
   nodes[startFen] = {expanded: true, notes: '', moves: []};
 
-  export function getFocus(): string[] {
-    return focus;
-  }
-
   export function getNodeOfFen(fen: string): PrepNode {
     let node = nodes[fen];
     if (!node) {
@@ -46,7 +42,7 @@
   }
 
   var handlers: TreeEventHandlers = {
-    getFocus, getNodeOfFen, clickMoveAt
+    getNodeOfFen, clickMoveAt
   };
 
   export function getFenAfterMoves(moves: string[]): string | null {
@@ -372,8 +368,8 @@
   </div>
   <div id="right">
     <div id="prep-display">
-      <Move bind:this={startMove} handlers={handlers} move={startPrepMove} history={[]}/>
-      <Node bind:this={rootNode} handlers={handlers} node={nodes[startFen]} fen={startFen} history={[]}/>
+      <Move bind:this={startMove} handlers={handlers} focus={focus} move={startPrepMove} history={[]}/>
+      <Node bind:this={rootNode} handlers={handlers} focus={focus} node={nodes[startFen]} fen={startFen} history={[]}/>
     </div>
   </div>
 </main>
