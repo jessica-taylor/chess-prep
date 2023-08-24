@@ -1,16 +1,22 @@
 import {Chess, PartialMove, PieceSymbol} from 'chess.ts';
+import * as CryptoJS from 'crypto-js';
 
 export type PrepMove = {
   algebraic: string;
   recommended: boolean;
   // next: PrepNode;
-}
+};
 
 export type PrepNode = {
   expanded: boolean;
   notes: string;
   moves: PrepMove[];
-}
+};
+
+export type PrepMerkle = {
+  node: PrepNode,
+  childHashes: string[]
+};
 
 export let startPrepMove = {algebraic: 'start', recommended: false};
 export let startFen: string = new Chess().fen();
@@ -19,6 +25,7 @@ export interface TreeEventHandlers {
   clickMoveAt(history: string[]): void;
   // getNodeAfterMoves(history: string[]): PrepNode | null;
   getNodeOfFen(fen: string): PrepNode;
+  getMerkleOfHash(hash: string): PrepMerkle | null;
   // getFocus(): string[];
 }
 
@@ -86,3 +93,10 @@ export function fenAfterMove(fen: string, move: string): string | null {
   }
   return simplifyFen(chess.fen());
 }
+
+export function hashValue(value: string): string {
+  return CryptoJS.SHA256(value).toString();
+}
+
+const hashedValue = hashValue('yourValueHere');
+console.log(hashedValue);

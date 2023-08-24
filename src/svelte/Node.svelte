@@ -5,14 +5,18 @@
   import Move from './Move.svelte';
   import Node from './Node.svelte';
   export let handlers: TreeEventHandlers;
-  export let node: PrepNode = {
-    expanded: true,
-    notes: '',
-    moves: []
-  };
+  export let hash: string;
   export let history: string[] = [];
-  export let fen: string = startFen;
   export let focus: string[] = [];
+
+  let merkleNode;
+  let node;
+  $: {
+    console.log('hash changed:', hash);
+    merkleNode = handlers.getMerkleOfHash(hash) || {node: {expanded: true, moves: [], notes: 'help me!'}, childHashes: []};
+  }
+  $: node = merkleNode.node;
+  $: console.log('node =', node, 'merkleNode = ', merkleNode);
 
   let childMoves: Move[] = [];
   let childNodes: Node[] = [];
@@ -86,13 +90,13 @@
   {#if node.expanded && node.moves.length > 0}
     {#if node.moves.length == 1}
       <Move bind:this={childMoves[0]} handlers={handlers} focus={getChildFocus(focus, 0)} move={node.moves[0]} history={[...history, node.moves[0].algebraic]}/>
-      <Node bind:this={childNodes[0]} handlers={handlers} focus={getChildFocus(focus, 0)} node={handlers.getNodeOfFen(fenAfterMove(fen, node.moves[0].algebraic) || startFen)} history={[...history, node.moves[0].algebraic]} fen={fenAfterMove(fen, node.moves[0].algebraic) || startFen}/>
+      <Node bind:this={childNodes[0]} handlers={handlers} focus={getChildFocus(focus, 0)} history={[...history, node.moves[0].algebraic]} hash={merkleNode.childHashes[0]}/>
     {:else}
       <ul class="prep-ul">
         {#each node.moves as move, ix}
           <li class="prep-li">
             <Move bind:this={childMoves[ix]} handlers={handlers} focus={getChildFocus(focus, ix)} move={move} history={[...history, move.algebraic]}/>
-            <Node bind:this={childNodes[ix]} handlers={handlers} focus={getChildFocus(focus, ix)} node={handlers.getNodeOfFen(fenAfterMove(fen, move.algebraic) || startFen)} history={[...history, move.algebraic]} fen={fenAfterMove(fen, move.algebraic) || startFen}/>
+            <Node bind:this={childNodes[ix]} handlers={handlers} focus={getChildFocus(focus, ix)} history={[...history, move.algebraic]} hash={merkleNode.childHashes[ix]}/>
           </li>
         {/each}
       </ul>

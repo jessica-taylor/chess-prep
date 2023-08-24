@@ -2,12 +2,14 @@
 
 <script lang="ts">
   import { onMount, beforeDestroy } from 'svelte';
-  import {PrepMove, PrepNode, startPrepMove, TreeEventHandlers, fenAfterMove, fenAfterMoves, startFen, chessStateAfterMoves, nodeGetMove, nodeGetMoveIx} from '../types';
+  import * as cjsonStringify from 'canonical-json';
+  import * as chessboard from 'chessboardjs';
+
+  import {PrepMove, PrepNode, startPrepMove, TreeEventHandlers, fenAfterMove, fenAfterMoves, startFen, chessStateAfterMoves, nodeGetMove, nodeGetMoveIx, hashValue} from '../types';
   import Move from './Move.svelte';
   import Node from './Node.svelte';
 
 
-  import * as chessboard from 'chessboardjs';
   let nodes: Record<string, PrepNode> = {};
   let startMove: Move;
   let rootNode: Node;
@@ -22,9 +24,45 @@
   export function getNodeOfFen(fen: string): PrepNode {
     let node = nodes[fen];
     if (!node) {
-      return nodes[fen] = {expanded: true, notes: '', moves: []};
+      nodes = {...nodes, [fen]: {expanded: true, notes: '', moves: []}};
+      return nodes[fen];
     }
     return node;
+  }
+
+
+  function buildMerkleTree(nodes: Record<string, PrepNode>, fen: string | null, cache): string {
+    console.log('buildMerkleTree', fen);
+    let merkle;
+    if (fen == null) {
+      merkle = {node: {expanded: true, notes: '', moves: []}, childHashes: []};
+    } else {
+      let node = getNodeOfFen(fen);
+      let childHashes: string[] = [];
+      if (node.expanded) {
+        for (let move of node.moves) {
+          let newFen = fenAfterMove(fen, move.algebraic);
+          childHashes.push(buildMerkleTree(nodes, newFen, cache));
+        }
+      }
+      merkle = {node, childHashes};
+    }
+    let hash = hashValue(cjsonStringify(merkle));
+    cache[hash] = merkle;
+    return hash;
+  }
+
+  let merkleCache = {};
+  let rootHash = '';
+  $: {
+    merkleCache = {};
+    rootHash = buildMerkleTree(nodes, startFen, merkleCache);
+    console.log('rootHash', rootHash);
+  }
+
+  function getMerkleOfHash(hash: string): PrepMerkle | null {
+    console.log('hash', hash, 'merkleCache', merkleCache);
+    return merkleCache[hash] || null;
   }
 
   export function rerender() {
@@ -42,7 +80,7 @@
   }
 
   var handlers: TreeEventHandlers = {
-    getNodeOfFen, clickMoveAt
+    getNodeOfFen, clickMoveAt, getMerkleOfHash
   };
 
   export function getFenAfterMoves(moves: string[]): string | null {
@@ -76,7 +114,7 @@
     if (fen == null) {
       return;
     }
-    nodes[fen] = node;
+    nodes = {...nodes, [fen]: node};
   }
 
 
@@ -369,7 +407,7 @@
   <div id="right">
     <div id="prep-display">
       <Move bind:this={startMove} handlers={handlers} focus={focus} move={startPrepMove} history={[]}/>
-      <Node bind:this={rootNode} handlers={handlers} focus={focus} node={nodes[startFen]} fen={startFen} history={[]}/>
+      <Node bind:this={rootNode} handlers={handlers} focus={focus} hash={rootHash} node={nodes[startFen]} history={[]}/>
     </div>
   </div>
 </main>

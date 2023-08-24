@@ -489,4 +489,4 @@ function main() {
   // });
 }
 
-main();
+(window as any).startup = main;
