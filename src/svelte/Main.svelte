@@ -61,7 +61,6 @@
   }
 
   function getMerkleOfHash(hash: string): PrepMerkle | null {
-    console.log('hash', hash, 'merkleCache', merkleCache);
     return merkleCache[hash] || null;
   }
 
@@ -80,7 +79,7 @@
   }
 
   export function toggleExpandedAt(history: string[]) {
-    let node = getNodeAfterMoves(history);
+    let node = {...getNodeAfterMoves(history)};
     node.expanded = !node.expanded;
     setNodeAfterMoves(history, node);
   }
@@ -127,12 +126,15 @@
 
   export function expandInto(moves: string[]) {
     let fen = startFen;
-    let node = getNodeOfFen(fen);
+    let node = {...getNodeOfFen(fen)};
+    let ix = 0;
     for (let move of moves) {
       let pmove = nodeGetMove(node, move);
       if (pmove == null) {
         pmove = {algebraic: move, recommended: false};
+        node = {...node};
         node.moves.push(pmove);
+        setNodeAfterMoves(moves.slice(0, ix), node);
       }
       let nextFen = fenAfterMove(fen, move);
       if (nextFen == null) {
@@ -140,8 +142,10 @@
         return null;
       }
       fen = nextFen;
-      node = getNodeOfFen(fen);
+      node = {...getNodeOfFen(fen)};
       node.expanded = true;
+      setNodeAfterMoves(moves.slice(0, ix + 1), node);
+      ++ix;
     }
   }
 
@@ -226,7 +230,7 @@
   }
 
   export function saveNotes() {
-    let node = getNodeAfterMoves(focus);
+    let node = {...getNodeAfterMoves(focus)};
     if (node != null) {
       node.notes = positionNotes;
       setNodeAfterMoves(focus, node);

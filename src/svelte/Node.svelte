@@ -17,7 +17,7 @@
     merkleNode = handlers.getMerkleOfHash(hash) || {node: {expanded: true, moves: [], notes: 'help me!'}, childHashes: []};
   }
   $: node = merkleNode.node;
-  $: console.log('node =', node, 'merkleNode = ', merkleNode);
+  $: console.log('history = ', history, 'node =', node, 'merkleNode = ', merkleNode);
 
   let childMoves: Move[] = [];
   let childNodes: Node[] = [];
