@@ -24,6 +24,7 @@ export let startFen: string = new Chess().fen();
 
 export interface TreeEventHandlers {
   clickMoveAt(history: string[]): void;
+  toggleExpandedAt(history: string[]): void;
   // getNodeAfterMoves(history: string[]): PrepNode | null;
   getNodeOfFen(fen: string): PrepNode;
   getMerkleOfHash(hash: string): PrepMerkle | null;

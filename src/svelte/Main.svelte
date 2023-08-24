@@ -79,8 +79,14 @@
     // }
   }
 
+  export function toggleExpandedAt(history: string[]) {
+    let node = getNodeAfterMoves(history);
+    node.expanded = !node.expanded;
+    setNodeAfterMoves(history, node);
+  }
+
   var handlers: TreeEventHandlers = {
-    getNodeOfFen, clickMoveAt, getMerkleOfHash
+    getNodeOfFen, clickMoveAt, getMerkleOfHash, toggleExpandedAt
   };
 
   export function getFenAfterMoves(moves: string[]): string | null {

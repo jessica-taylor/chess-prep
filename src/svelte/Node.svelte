@@ -11,6 +11,7 @@
 
   let merkleNode;
   let node;
+  let expanded;
   $: {
     console.log('hash changed:', hash);
     merkleNode = handlers.getMerkleOfHash(hash) || {node: {expanded: true, moves: [], notes: 'help me!'}, childHashes: []};
@@ -41,11 +42,7 @@
   // }
 
   function clickedExp() {
-    node = {
-      expanded: !node.expanded,
-      notes: node.notes,
-      moves: node.moves
-    };
+    handlers.toggleExpandedAt(history);
   }
 
   export function getNodeComponent(postfix: string[]): Node | null {
