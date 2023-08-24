@@ -7,19 +7,9 @@ import {Chess, PartialMove, PieceSymbol} from 'chess.ts';
 
 import * as chessboard from 'chessboardjs';
 
-let startFen: string = new Chess().fen();
+import {PrepMove, PrepNode, startPrepMove, startFen} from './types';
+import TestComponent from './svelte/TestComponent.svelte';
 
-type PrepMove = {
-  algebraic: string;
-  recommended: boolean;
-  // next: PrepNode;
-}
-
-type PrepNode = {
-  expanded: boolean;
-  notes: string;
-  moves: PrepMove[];
-}
 
 function getMoveIx(moves: PrepMove[], algebraic: string): number{
   for (var i = 0; i < moves.length; ++i) {
@@ -255,7 +245,7 @@ class PrepView implements TreeEventHandlers {
 
   constructor() {
     this.nodes[startFen] = {expanded: true, notes: '', moves: []};
-    this.startMove = new MoveComponent({algebraic: 'start', recommended: false}, [], this);
+    this.startMove = new MoveComponent(startPrepMove, [], this);
     this.rootComponent = new NodeComponent(this.nodes[startFen], [], startFen, this);
   }
 
@@ -517,6 +507,7 @@ class PrepView implements TreeEventHandlers {
 }
 
 function main() {
+  let testComponent = new TestComponent({target: document.body});
   (window as any).bar = chessboard;
   $(function() {
     let view = new PrepView();
