@@ -1,7 +1,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
 
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, beforeDestroy } from 'svelte';
   import {PrepMove, PrepNode, startPrepMove, TreeEventHandlers, fenAfterMove, fenAfterMoves, startFen, chessStateAfterMoves, nodeGetMove, nodeGetMoveIx} from '../types';
   import Move from './Move.svelte';
   import Node from './Node.svelte';
@@ -184,12 +184,71 @@
     positionNotesChanged = true;
   }
 
-  function saveNotes() {
+  export function saveNotes() {
     let node = getNodeAfterMoves(focus);
     if (node != null) {
       node.notes = positionNotes;
       setNodeAfterMoves(focus, node);
       rerender();
+    }
+  }
+
+  onMount(() => {
+    const handleKeydown = (event) => {
+      console.log('handleKeyDown', event);
+      if (event.ctrlKey) {
+        switch (event.key) {
+          case 'ArrowLeft':
+            focusArrow('left');
+            break;
+          case 'ArrowRight':
+            focusArrow('right');
+            break;
+          case 'ArrowUp':
+            focusArrow('up');
+            break;
+          case 'ArrowDown':
+            focusArrow('down');
+            break;
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeydown);
+
+    return () => { // This function will run when the component is destroyed.
+      document.removeEventListener('keydown', handleKeydown);
+    };
+  });
+
+  export function focusArrow(direction: string) {
+    var secondLast = null;
+    var lastMoveIx = -1;
+    if (focus.length != 0) {
+      secondLast = getNodeAfterMoves(focus.slice(0, -1));
+      if (secondLast != null) {
+        lastMoveIx = nodeGetMoveIx(secondLast, focus[focus.length - 1]);
+      }
+    }
+    let last = getNodeAfterMoves(focus);
+    if (direction == 'left') {
+      clickMoveAt(focus.slice(0, -1));
+    } else if (direction == 'right') {
+      if (last != null && last.moves.length > 0) {
+        clickMoveAt([...focus, last.moves[0].algebraic]);
+      }
+    } else if (direction == 'up') {
+      let moveIx = lastMoveIx - 1;
+      if (moveIx >= 0 && secondLast != null) {
+        clickMoveAt([...focus.slice(0, -1), secondLast.moves[moveIx].algebraic]);
+      }
+    } else if (direction == 'down') {
+      if (lastMoveIx != -1 && secondLast != null) {
+        let moveIx = lastMoveIx + 1;
+        if (moveIx < secondLast.moves.length) {
+          clickMoveAt([...focus.slice(0, -1), secondLast.moves[moveIx].algebraic]);
+        }
+      }
     }
   }
 
