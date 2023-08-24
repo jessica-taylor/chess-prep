@@ -8,6 +8,9 @@
   // font-weight: 800;
   text-decoration: underline;
 }
+.prep-annotated {
+  font-weight: bold;
+}
 .prep-white {
   color: red;
 }

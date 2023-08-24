@@ -21,13 +21,17 @@ type PrepNode = {
   moves: PrepMove[];
 }
 
-function nodeGetMoveIx(node: PrepNode, algebraic: string): number{
-  for (var i = 0; i < node.moves.length; ++i) {
-    if (node.moves[i].algebraic == algebraic) {
+function getMoveIx(moves: PrepMove[], algebraic: string): number{
+  for (var i = 0; i < moves.length; ++i) {
+    if (moves[i].algebraic == algebraic) {
       return i;
     }
   }
   return -1;
+}
+
+function nodeGetMoveIx(node: PrepNode, algebraic: string): number{
+  return getMoveIx(node.moves, algebraic);
 }
 
 function nodeGetMove(node: PrepNode, algebraic: string): PrepMove | null {
@@ -120,6 +124,13 @@ class MoveComponent {
     moveSpan.click(() => {
       this.handlers.clickMove(this)
     });
+    let fenAfter = fenAfterMoves(this.history);
+    if (fenAfter != null) {
+      let nodeAfter = this.handlers.getNodeOfFen(fenAfter);
+      if (nodeAfter.notes) {
+        moveSpan.addClass('prep-annotated');
+      }
+    }
   }
 
 }
@@ -206,6 +217,9 @@ class NodeComponent {
   getNodeComponent(postfix: string[]): NodeComponent | null {
     var node: NodeComponent = this;
     for (let nextMove of postfix) {
+      if (node.moveNodeComponents.length == 0) {
+        return null;
+      }
       let ix = nodeGetMoveIx(node.node, nextMove);
       if (ix == -1) {
         return null;
@@ -220,7 +234,7 @@ class NodeComponent {
       return null;
     }
     var node = this.getNodeComponent(postfix.slice(0, -1));
-    if (node == null) {
+    if (node == null || node.moveNodeComponents.length == 0) {
       return null;
     }
     let ix = nodeGetMoveIx(node.node, postfix[postfix.length - 1]);
@@ -368,7 +382,7 @@ class PrepView implements TreeEventHandlers {
   }
 
   rerenderMoveAt(history: string[]) {
-    let mc = this.rootComponent.getMoveComponent(history);
+    let mc = history.length == 0 ? this.startMove : this.rootComponent.getMoveComponent(history);
     if (mc != null) {
       mc.render();
     }
@@ -529,6 +543,7 @@ function main() {
       let node = view.getNodeAfterMoves(view.focus);
       if (node != null) {
         node.notes = $('#position-notes').val() as string;
+        view.rerenderMoveAt(view.focus);
       }
     });
     $(document).keydown(function(event) {
