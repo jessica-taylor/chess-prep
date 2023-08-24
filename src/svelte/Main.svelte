@@ -34,7 +34,7 @@
   export function clickMoveAt(history: string[]) {
     focus = history;
     positionNotesChanged = false;
-    rerender();
+    // rerender();
     // let mc = getMoveComponentAt(history);
     // if (mc != null) {
     //   clickMove(mc);

@@ -19,6 +19,23 @@
 
   let self = this;
 
+  function getChildFocus(foc, ix) {
+    if (foc.length >= history.length + 1 && foc[history.length] == node.moves[ix].algebraic) {
+      return foc;
+    }
+    return [];
+  }
+  // let childFocuses = [];
+  // $: {
+  //   childFocuses = node.moves.map((move) => {
+  //     if (focus.length >= history.length + 1 && focus[history.length] == move.algebraic) {
+  //       return focus;
+  //     }
+  //     return [];
+  //   });
+  //   console.log('history', history, 'focus', focus, 'childFocuses', childFocuses);
+  // }
+
   function clickedExp() {
     node = {
       expanded: !node.expanded,
@@ -68,14 +85,14 @@
   </span>
   {#if node.expanded && node.moves.length > 0}
     {#if node.moves.length == 1}
-      <Move bind:this={childMoves[0]} handlers={handlers} focus={focus} move={node.moves[0]} history={[...history, node.moves[0].algebraic]}/>
-      <Node bind:this={childNodes[0]} handlers={handlers} focus={focus} node={handlers.getNodeOfFen(fenAfterMove(fen, node.moves[0].algebraic) || startFen)} history={[...history, node.moves[0].algebraic]} fen={fenAfterMove(fen, node.moves[0].algebraic) || startFen}/>
+      <Move bind:this={childMoves[0]} handlers={handlers} focus={getChildFocus(focus, 0)} move={node.moves[0]} history={[...history, node.moves[0].algebraic]}/>
+      <Node bind:this={childNodes[0]} handlers={handlers} focus={getChildFocus(focus, 0)} node={handlers.getNodeOfFen(fenAfterMove(fen, node.moves[0].algebraic) || startFen)} history={[...history, node.moves[0].algebraic]} fen={fenAfterMove(fen, node.moves[0].algebraic) || startFen}/>
     {:else}
       <ul class="prep-ul">
         {#each node.moves as move, ix}
           <li class="prep-li">
-            <Move bind:this={childMoves[ix]} handlers={handlers} focus={focus} move={move} history={[...history, move.algebraic]}/>
-            <Node bind:this={childNodes[ix]} handlers={handlers} focus={focus} node={handlers.getNodeOfFen(fenAfterMove(fen, move.algebraic) || startFen)} history={[...history, move.algebraic]} fen={fenAfterMove(fen, move.algebraic) || startFen}/>
+            <Move bind:this={childMoves[ix]} handlers={handlers} focus={getChildFocus(focus, ix)} move={move} history={[...history, move.algebraic]}/>
+            <Node bind:this={childNodes[ix]} handlers={handlers} focus={getChildFocus(focus, ix)} node={handlers.getNodeOfFen(fenAfterMove(fen, move.algebraic) || startFen)} history={[...history, move.algebraic]} fen={fenAfterMove(fen, move.algebraic) || startFen}/>
           </li>
         {/each}
       </ul>
