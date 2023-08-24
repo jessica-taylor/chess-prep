@@ -167,7 +167,6 @@
     }
     lastMove.recommended = !lastMove.recommended;
     setNodeAfterMoves(focus.slice(0, -1), secondLast);
-    rerender();
   }
 
 
@@ -219,7 +218,6 @@
     secondLast.moves[lastMoveIx] = secondLast.moves[swapIx];
     secondLast.moves[swapIx] = temp;
     setNodeAfterMoves(focus.slice(0, -1), secondLast);
-    rerender();
   }
 
   function handleNotesChange() {
@@ -231,7 +229,6 @@
     if (node != null) {
       node.notes = positionNotes;
       setNodeAfterMoves(focus, node);
-      rerender();
     }
   }
 
