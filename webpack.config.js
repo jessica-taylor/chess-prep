@@ -2,6 +2,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { performance} = require('perf_hooks');
+const sveltePreprocess = require('svelte-preprocess');
 global.performance = performance;
 
 
@@ -29,17 +30,18 @@ module.exports = {
 							dev: !prod
 						},
 						emitCss: prod,
-						hotReload: !prod
+						hotReload: !prod,
+            preprocess: sveltePreprocess(),
 					}
 				}
 			},
-      // {
-      //   // required to prevent errors from Svelte on Webpack 5+, omit on Webpack 4
-      //   test: /node_modules\/svelte\/.*\.mjs$/,
-      //   resolve: {
-      //     fullySpecified: false
-      //   }
-      // }
+      {
+        // required to prevent errors from Svelte on Webpack 5+, omit on Webpack 4
+        test: /node_modules\/svelte\/.*\.mjs$/,
+        resolve: {
+          fullySpecified: false
+        }
+      }
     ],
   },
   resolve: {

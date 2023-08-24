@@ -8,9 +8,9 @@ import {Chess, PartialMove, PieceSymbol} from 'chess.ts';
 import * as chessboard from 'chessboardjs';
 
 import {PrepMove, PrepNode, startPrepMove, startFen, TreeEventHandlers, getMoveIx, nodeGetMoveIx, nodeGetMove, simplifyFen, chessStateAfterMoves, fenAfterMoves, fenAfterMove} from './types';
-import TestComponent from './svelte/TestComponent.svelte';
 import Move from './svelte/Move.svelte';
 import Node from './svelte/Node.svelte';
+import Main from './svelte/Main.svelte';
 
 
 
@@ -439,8 +439,7 @@ class PrepView implements TreeEventHandlers {
 }
 
 function main() {
-  let testComponent = new TestComponent({target: document.body});
-  (window as any).bar = chessboard;
+  let testComponent = new Main({target: document.body});
   $(function() {
     let view = new PrepView();
     view.rerender();

@@ -1,13 +1,22 @@
-import {PrepMove, PrepNode, startPrepMove, TreeEventHandlers, fenAfterMoves} from '/types';
 
-<script>
+<script lang="ts">
+  import {startPrepMove, TreeEventHandlers, fenAfterMoves, startFen} from '../types';
   export let handlers: TreeEventHandlers;
   export let move: PrepMove = startPrepMove;
   export let history: string[] = [];
 
-  $: isFocused: boolean = JSON.stringify(handlers.getFocus()) == JSON.stringify(history);
-  $: fenAfter: string = fenAfterMoves(history);
-  $: nodeAfter: PrepNode = handlers.getNodeOfFen(fenAfter);
+  let isFocused: boolean = false;
+  let fenAfter: string = startFen;
+  let nodeAfter: any = {
+    expanded: true,
+    notes: '',
+    moves: []
+  };
+
+  $: isFocused = JSON.stringify(handlers.getFocus()) == JSON.stringify(history);
+  $: fenAfter = fenAfterMoves(history);
+  $: nodeAfter = handlers.getNodeOfFen(fenAfter);
+
 </script>
 <main>
   <span class="move-container">
@@ -16,7 +25,7 @@ import {PrepMove, PrepNode, startPrepMove, TreeEventHandlers, fenAfterMoves} fro
           class:prep-recommended={move.recommended}
           class:prep-white={history.length % 2 == 1}
           class:prep-black={history.length % 2 == 0}
-          chess:prep-annotated={!!nodeAfter.notes}>
+          class:prep-annotated={!!nodeAfter.notes}>
       {move.algebraic}
     </span>
   </span>
