@@ -20,7 +20,6 @@
   $: nodeAfter = handlers.getNodeOfFen(fenAfter);
 
   function handleClick() {
-    console.log('handleClick', history);
     handlers.clickMoveAt(history);
   }
 

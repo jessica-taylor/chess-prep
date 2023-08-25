@@ -31,7 +31,7 @@
   }
 
 
-  function buildMerkleTree(nodes: Record<string, PrepNode>, fen: string | null, cache): string {
+  function buildMerkleTree(nodes: Record<string, PrepNode>, fen: string | null, cache, fenToHash, hashToParents): string {
     let merkle;
     if (fen == null) {
       merkle = {node: {expanded: true, notes: '', moves: []}, childHashes: []};
@@ -41,21 +41,30 @@
       if (node.expanded) {
         for (let move of node.moves) {
           let newFen = fenAfterMove(fen, move.algebraic);
-          childHashes.push(buildMerkleTree(nodes, newFen, cache));
+          let childHash = buildMerkleTree(nodes, newFen, cache, fenToHash, hashToParents);
+          childHashes.push(childHash);
+          if (!hashToParents[childHash]) {
+            hashToParents[childHash] = {};
+          }
+          hashToParents[childHash][fen] = true;
         }
       }
       merkle = {node, fen, childHashes};
     }
     let hash = hashValue(cjsonStringify(merkle));
     cache[hash] = merkle;
+    fenToHash[fen] = hash;
     return hash;
   }
 
   let merkleCache = {};
+  let fenToHash = {};
+  let hashToParents = {};
   let rootHash = '';
   $: {
     merkleCache = {};
-    rootHash = buildMerkleTree(nodes, startFen, merkleCache);
+    fenToHash = {};
+    rootHash = buildMerkleTree(nodes, startFen, merkleCache, fenToHash, hashToParents);
   }
 
   function getMerkleOfHash(hash: string): PrepMerkle | null {
