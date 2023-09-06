@@ -16,8 +16,7 @@
   };
 
   $: isFocused = JSON.stringify(focus) == JSON.stringify(history);
-  $: fenAfter = fenAfterMoves(history);
-  $: nodeAfter = handlers.getNodeOfFen(fenAfter);
+  $: nodeAfter = handlers.getNodeAfterMoves(history);
 
   function handleClick() {
     handlers.clickMoveAt(history);

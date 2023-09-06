@@ -36,7 +36,7 @@ export interface TreeEventHandlers {
   clickMoveAt(history: string[]): void;
   toggleExpandedAt(history: string[]): void;
   // getNodeAfterMoves(history: string[]): PrepNode | null;
-  getNodeOfFen(fen: string): PrepNode;
+  getNodeAfterMoves(history: string[]): PrepNode;
   getMerkleOfHash(hash: string): PrepMerkle | null;
   // getFocus(): string[];
 }

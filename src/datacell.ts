@@ -83,6 +83,11 @@ export interface DependencyTracker {
   addDependency(updater: CellUpdater): void;
 }
 
+export function getCellValue<T>(tracker: DependencyTracker, cell: DataCell<T>): T {
+  tracker.addDependency(cell.getUpdater());
+  return cell.getValue();
+}
+
 class RecordDependencyTracker implements DependencyTracker {
   deps: Record<number, CellUpdater>;
 
@@ -93,6 +98,7 @@ class RecordDependencyTracker implements DependencyTracker {
   addDependency(updater: CellUpdater) {
     this.deps[updater.id] = updater;
   }
+
 }
 
 export class FunctionalCell<T> implements DataCell<T> {
