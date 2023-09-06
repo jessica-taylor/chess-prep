@@ -5,9 +5,13 @@
   import * as cjsonStringify from 'canonical-json';
   import * as chessboard from 'chessboardjs';
 
-  import {PrepMove, PrepNode, startPrepMove, TreeEventHandlers, fenAfterMove, fenAfterMoves, startFen, chessStateAfterMoves, nodeGetMove, nodeGetMoveIx, hashValue} from '../types';
+  import {PrepMove, PrepNode, PrepHashedMerkle, startPrepMove, TreeEventHandlers, fenAfterMove, fenAfterMoves, startFen, chessStateAfterMoves, nodeGetMove, nodeGetMoveIx, hashValue} from '../types';
+  import {MutableCell, FunctionalCell} from '../datacell';
   import Move from './Move.svelte';
   import Node from './Node.svelte';
+
+  let nodeCells: Record<string, MutableCell<PrepNode>> = {};
+  // let nodeMerkles: Record<string, DataCell<PrepHashedMerkle>> = {};
 
 
   let nodes: Record<string, PrepNode> = {};

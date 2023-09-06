@@ -19,6 +19,11 @@ export type PrepMerkle = {
   childHashes: string[]
 };
 
+export type PrepHashedMerkle = {
+  body: PrepMerkle,
+  hash: string,
+};
+
 export let startPrepMove = {algebraic: 'start', recommended: false};
 export let startFen: string = new Chess().fen();
 
