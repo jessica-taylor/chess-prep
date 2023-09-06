@@ -23,19 +23,61 @@
   let positionNotes: string = '';
   $: if(!positionNotesChanged) positionNotes = getNodeAfterMoves(focus).notes;
 
-  nodes[startFen] = {expanded: true, notes: '', moves: []};
+  // nodes[startFen] = {expanded: true, notes: '', moves: []};
 
-  export function getNodeOfFen(fen: string): PrepNode {
-    let node = nodes[fen];
-    if (!node) {
-      nodes = {...nodes, [fen]: {expanded: true, notes: '', moves: []}};
-      return nodes[fen];
+  export function nodeCellOfFen(fen: string): MutableCell<PrepNode> {
+    if (!nodeCells[fen]) {
+      nodeCells[fen] = new MutableCell({expanded: true, notes: '', moves: []});
     }
-    return node;
+    return nodeCells[fen];
+  }
+
+  nodeCellOfFen(startFen);
+
+  export function nodeCellAfterMoves(history: string[]): MutableCell<PrepNode> | null {
+    let fen = getFenAfterMoves(history);
+    if (fen == null) {
+      return null;
+    }
+    return nodeCellOfFen(fen);
   }
 
 
-  function buildMerkleTree(nodes: Record<string, PrepNode>, fen: string | null, cache, fenToHash, hashToParents): string {
+  export function getNodeOfFen(fen: string): PrepNode {
+    return nodeCellOfFen(fen).getValue();
+  }
+
+  export function setNodeAfterMoves(moves: string[], node: PrepNode) {
+    let fen = getFenAfterMoves(moves);
+    if (fen == null) {
+      return;
+    }
+    nodeCellOfFen(fen).setValue(node);
+  }
+
+  function buildMerkleTree2(nodeCells: Record<string, MutableCell<PrepNode>>, history: string[], cache): string {
+    let merkle;
+    let cell = nodeCellAfterMoves(history);
+    if (cell == null) {
+      merkle = {node: {expanded: true, notes: '', moves: []}, childHashes: []};
+    } else {
+      let childHashes: string[] = [];
+      if (node.expanded) {
+        for (let move of node.moves) {
+          let newHistory = [...history, move.algebraic];
+          let childHash = buildMerkleTree2(nodeCells, newHistory, cache);
+          childHashes.push(childHash);
+        }
+      }
+      merkle = {node: cell.getValue(), childHashes};
+    }
+    let hash = hashValue(cjsonStringify(merkle));
+    cache[hash] = merkle;
+    return hash;
+  }
+
+
+  function buildMerkleTree(nodeCells: Record<string, MutableCell<PrepNode>>, fen: string | null, cache, fenToHash, hashToParents): string {
     let merkle;
     if (fen == null) {
       merkle = {node: {expanded: true, notes: '', moves: []}, childHashes: []};
@@ -45,7 +87,7 @@
       if (node.expanded) {
         for (let move of node.moves) {
           let newFen = fenAfterMove(fen, move.algebraic);
-          let childHash = buildMerkleTree(nodes, newFen, cache, fenToHash, hashToParents);
+          let childHash = buildMerkleTree(nodeCells, newFen, cache, fenToHash, hashToParents);
           childHashes.push(childHash);
           if (!hashToParents[childHash]) {
             hashToParents[childHash] = {};
@@ -68,7 +110,7 @@
   $: {
     merkleCache = {};
     fenToHash = {};
-    rootHash = buildMerkleTree(nodes, startFen, merkleCache, fenToHash, hashToParents);
+    rootHash = buildMerkleTree(nodeCells, startFen, merkleCache, fenToHash, hashToParents);
   }
 
   function getMerkleOfHash(hash: string): PrepMerkle | null {
@@ -123,14 +165,6 @@
       return null;
     }
     return getNodeOfFen(fen);
-  }
-
-  export function setNodeAfterMoves(moves: string[], node: PrepNode) {
-    let fen = getFenAfterMoves(moves);
-    if (fen == null) {
-      return;
-    }
-    nodes = {...nodes, [fen]: node};
   }
 
 
