@@ -48,7 +48,15 @@ export class CellUpdater {
 
 }
 
-export class MutableCell<T> {
+export interface DataCell<T> {
+
+  getUpdater(): CellUpdater;
+
+  getValue(): T;
+
+}
+
+export class MutableCell<T> implements DataCell<T> {
   updater: CellUpdater;
   value: T;
 
@@ -64,6 +72,10 @@ export class MutableCell<T> {
   setValue(value: T) {
     this.value = value;
     this.updater.valueChanged();
+  }
+
+  getUpdater(): CellUpdater {
+    return this.updater;
   }
 }
 
@@ -83,7 +95,7 @@ class RecordDependencyTracker implements DependencyTracker {
   }
 }
 
-export class FunctionalCell<T> {
+export class FunctionalCell<T> implements DataCell<T> {
   updater: CellUpdater;
   value: T;
   updateFn: (tracker: DependencyTracker) => T;
@@ -127,9 +139,9 @@ export class FunctionalCell<T> {
     return this.value;
   }
 
-  // getUpdater(): CellUpdater {
-  //   return this.updater;
-  // }
+  getUpdater(): CellUpdater {
+    return this.updater;
+  }
 }
 
 
