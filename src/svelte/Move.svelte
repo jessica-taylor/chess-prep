@@ -6,6 +6,7 @@
   export let move: PrepMove = startPrepMove;
   export let history: string[] = [];
   export let focus: string[] = [];
+  export let hash: string;
 
   let isFocused: boolean = false;
   let fenAfter: string = startFen;
@@ -16,7 +17,7 @@
   };
 
   $: isFocused = JSON.stringify(focus) == JSON.stringify(history);
-  $: nodeAfter = handlers.getNodeAfterMoves(history);
+  $: nodeAfter = (handlers.getMerkleOfHash(hash) || {node: nodeAfter}).node;
 
   function handleClick() {
     handlers.clickMoveAt(history);

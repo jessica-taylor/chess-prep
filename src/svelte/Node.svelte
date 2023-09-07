@@ -80,13 +80,13 @@
   </span>
   {#if node.expanded && node.moves.length > 0}
     {#if node.moves.length == 1}
-      <Move bind:this={childMoves[0]} handlers={handlers} focus={getChildFocus(focus, 0)} move={node.moves[0]} history={[...history, node.moves[0].algebraic]}/>
+      <Move bind:this={childMoves[0]} handlers={handlers} focus={getChildFocus(focus, 0)} move={node.moves[0]} history={[...history, node.moves[0].algebraic]} hash={merkleNode.childHashes[0]}/>
       <Node bind:this={childNodes[0]} handlers={handlers} focus={getChildFocus(focus, 0)} history={[...history, node.moves[0].algebraic]} hash={merkleNode.childHashes[0]}/>
     {:else}
       <ul class="prep-ul">
         {#each node.moves as move, ix}
           <li class="prep-li">
-            <Move bind:this={childMoves[ix]} handlers={handlers} focus={getChildFocus(focus, ix)} move={move} history={[...history, move.algebraic]}/>
+            <Move bind:this={childMoves[ix]} handlers={handlers} focus={getChildFocus(focus, ix)} move={move} history={[...history, move.algebraic]} hash={merkleNode.childHashes[ix]}/>
             <Node bind:this={childNodes[ix]} handlers={handlers} focus={getChildFocus(focus, ix)} history={[...history, move.algebraic]} hash={merkleNode.childHashes[ix]}/>
           </li>
         {/each}

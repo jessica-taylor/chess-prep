@@ -22,7 +22,7 @@
   let promotionChoice = 'q';
   let positionNotesChanged: boolean = false;
   let positionNotes: string = '';
-  $: if(!positionNotesChanged) positionNotes = getNodeAfterMoves(focus).notes;
+  $: if(!positionNotesChanged) positionNotes = (getNodeAfterMoves(focus) || {notes: ''}).notes;
 
   // nodes[startFen] = {expanded: true, notes: '', moves: []};
 
@@ -120,7 +120,11 @@
   }
 
   export function toggleExpandedAt(history: string[]) {
-    let node = {...getNodeAfterMoves(history)};
+    var node = getNodeAfterMoves(history);
+    if (node == null) {
+      return;
+    }
+    node = {...node};
     node.expanded = !node.expanded;
     setNodeAfterMoves(history, node);
   }
