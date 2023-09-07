@@ -19,11 +19,6 @@ export type PrepMerkle = {
   childHashes: string[]
 };
 
-export type PrepHashedMerkle = {
-  body: PrepMerkle,
-  hash: string,
-};
-
 export type PrepHistoryMerkle = {
   node: PrepNode,
   childHashes: string[]
@@ -35,10 +30,8 @@ export let startFen: string = new Chess().fen();
 export interface TreeEventHandlers {
   clickMoveAt(history: string[]): void;
   toggleExpandedAt(history: string[]): void;
-  // getNodeAfterMoves(history: string[]): PrepNode | null;
   getNodeAfterMoves(history: string[]): PrepNode;
   getMerkleOfHash(hash: string): PrepMerkle | null;
-  // getFocus(): string[];
 }
 
 export function getMoveIx(moves: PrepMove[], algebraic: string): number{

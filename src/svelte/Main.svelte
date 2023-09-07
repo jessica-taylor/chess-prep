@@ -47,6 +47,7 @@
   }
 
   export function setNodeAfterMoves(moves: string[], node: PrepNode) {
+    console.log('setNodeAfterMoves', moves, node);
     let fen = getFenAfterMoves(moves);
     if (fen == null) {
       return;
@@ -83,6 +84,7 @@
           }
           merkle = {node: getCellValue(tracker, cell), childHashes};
         }
+        console.log('history', history, 'merkle', merkle);
         let hash = hashValue(cjsonStringify(merkle));
         nodeMerklesByHash[hash] = merkle;
         return hash;
@@ -94,7 +96,9 @@
   let rootHash;
 
   function updateRootHash() {
+    console.log('dirty: ', getMerkleHashCell([]).getUpdater().dirty);
     rootHash = getMerkleHashCell([]).getValue();
+    console.log('rootHash is now', rootHash);
   }
 
   updateRootHash();
@@ -113,11 +117,6 @@
   export function clickMoveAt(history: string[]) {
     focus = history;
     positionNotesChanged = false;
-    // rerender();
-    // let mc = getMoveComponentAt(history);
-    // if (mc != null) {
-    //   clickMove(mc);
-    // }
   }
 
   export function toggleExpandedAt(history: string[]) {
@@ -346,21 +345,6 @@
       }
     }
   }
-
-  // export function clickMove(mc: MoveComponent) {
-  //   let mc2 = getMoveComponentAt(focus);
-  //   focus = mc.history;
-  //   mc.refreshHandlers();
-  //   if (mc2 != null) {
-  //     mc2.refreshHandlers();
-  //   }
-  //   // renderBoardAfterMoves(focus);
-  //   let node = getNodeAfterMoves(focus);
-  //   // if (node != null) {
-  //   //   $('#position-notes').val(node.notes);
-  //   // }
-  //   console.log('focus is', focus);
-  // }
 
   function initializeChessboard(history: string[]) {
     (chessboard as any).default('board', {

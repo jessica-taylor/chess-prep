@@ -1,4 +1,6 @@
 
+import assert from 'assert';
+
 // Dataflow cell
 
 let updaterIdCount = 0;
@@ -17,6 +19,7 @@ export class CellUpdater {
   }
 
   valueChanged() {
+    console.log('valueChanged', this.id, this.dirty);
     if (!this.dirty) {
       this.dirty = true;
       let newDeps: Record<number, WeakRef<CellUpdater>> = {};
@@ -66,6 +69,7 @@ export class MutableCell<T> implements DataCell<T> {
   }
 
   getValue(): T {
+    this.updater.refresh();
     return this.value;
   }
 
@@ -128,12 +132,14 @@ export class FunctionalCell<T> implements DataCell<T> {
     for (let depId in tracker.deps) {
       if (!(depId in this.dependencies)) {
         tracker.deps[depId].addDependent(this.updater);
+        console.log('addDependent', depId, this.updater.id);
       }
     }
 
     for (let depId in this.dependencies) {
       if (!(depId in tracker.deps)) {
         this.dependencies[depId].removeDependent(this.updater);
+        console.log('removeDependent', depId, this.updater.id);
       }
     }
 
@@ -150,4 +156,19 @@ export class FunctionalCell<T> implements DataCell<T> {
   }
 }
 
-
+export function runTest() {
+  let x = new MutableCell(2);
+  let y = new MutableCell(3);
+  assert.equal(2, x.getValue());
+  assert.equal(3, y.getValue());
+  let xpy = new FunctionalCell((tr) => getCellValue(tr, x) + getCellValue(tr, y));
+  assert.equal(5, xpy.getValue());
+  x.setValue(40);
+  assert.equal(43, xpy.getValue());
+  y.setValue(6);
+  assert.equal(46, xpy.getValue());
+  let xpyt2 = new FunctionalCell((tr) => getCellValue(tr, xpy) * 2);
+  assert.equal(92, xpyt2.getValue());
+  x.setValue(1);
+  assert.equal(14, xpyt2.getValue());
+}
