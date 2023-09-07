@@ -34,7 +34,7 @@
   }
 
   export function nodeCellAfterMoves(history: string[]): MutableCell<PrepNode> | null {
-    let fen = getFenAfterMoves(history);
+    let fen = fenAfterMoves(history);
     if (fen == null) {
       return null;
     }
@@ -48,7 +48,7 @@
 
   export function setNodeAfterMoves(moves: string[], node: PrepNode) {
     console.log('setNodeAfterMoves', moves, node);
-    let fen = getFenAfterMoves(moves);
+    let fen = fenAfterMoves(moves);
     if (fen == null) {
       return;
     }
@@ -133,23 +133,23 @@
     getNodeAfterMoves, clickMoveAt, getMerkleOfHash, toggleExpandedAt
   };
 
-  export function getFenAfterMoves(moves: string[]): string | null {
-    let fen = startFen;
-    let node = getNodeOfFen(fen);
-    for (let move of moves) {
-      let pmove = nodeGetMove(node, move);
-      if (pmove == null) {
-        return null;
-      }
-      let nextFen = fenAfterMove(fen, move);
-      if (nextFen == null) {
-        return null;
-      }
-      fen = nextFen;
-      node = getNodeOfFen(fen);
-    }
-    return fen;
-  }
+  // export function getFenAfterMoves(moves: string[]): string | null {
+  //   let fen = startFen;
+  //   let node = getNodeOfFen(fen);
+  //   for (let move of moves) {
+  //     let pmove = nodeGetMove(node, move);
+  //     if (pmove == null) {
+  //       return null;
+  //     }
+  //     let nextFen = fenAfterMove(fen, move);
+  //     if (nextFen == null) {
+  //       return null;
+  //     }
+  //     fen = nextFen;
+  //     node = getNodeOfFen(fen);
+  //   }
+  //   return fen;
+  // }
 
   export function expandInto(moves: string[]) {
     let fen = startFen;
