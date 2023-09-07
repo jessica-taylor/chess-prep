@@ -47,7 +47,6 @@
   }
 
   export function setNodeAfterMoves(moves: string[], node: PrepNode) {
-    console.log('setNodeAfterMoves', moves, node);
     let fen = fenAfterMoves(moves);
     if (fen == null) {
       return;
@@ -84,7 +83,6 @@
           }
           merkle = {node: getCellValue(tracker, cell), childHashes};
         }
-        console.log('history', history, 'merkle', merkle);
         let hash = hashValue(cjsonStringify(merkle));
         nodeMerklesByHash[hash] = merkle;
         return hash;
@@ -96,9 +94,7 @@
   let rootHash;
 
   function updateRootHash() {
-    console.log('dirty: ', getMerkleHashCell([]).getUpdater().dirty);
     rootHash = getMerkleHashCell([]).getValue();
-    console.log('rootHash is now', rootHash);
   }
 
   updateRootHash();
@@ -425,8 +421,8 @@
   </div>
   <div id="right">
     <div id="prep-display">
-      <Move bind:this={startMove} handlers={handlers} focus={focus} move={startPrepMove} history={[]}/>
-      <Node bind:this={rootNode} handlers={handlers} focus={focus} hash={rootHash} node={nodes[startFen]} history={[]}/>
+      <Move bind:this={startMove} handlers={handlers} focus={focus} move={startPrepMove} hash={rootHash} history={[]}/>
+      <Node bind:this={rootNode} handlers={handlers} focus={focus} hash={rootHash} history={[]}/>
     </div>
   </div>
 </main>

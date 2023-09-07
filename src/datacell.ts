@@ -19,7 +19,7 @@ export class CellUpdater {
   }
 
   valueChanged() {
-    console.log('valueChanged', this.id, this.dirty);
+    // console.log('valueChanged', this.id, this.dirty);
     if (!this.dirty) {
       this.dirty = true;
       let newDeps: Record<number, WeakRef<CellUpdater>> = {};
@@ -132,14 +132,14 @@ export class FunctionalCell<T> implements DataCell<T> {
     for (let depId in tracker.deps) {
       if (!(depId in this.dependencies)) {
         tracker.deps[depId].addDependent(this.updater);
-        console.log('addDependent', depId, this.updater.id);
+        // console.log('addDependent', depId, this.updater.id);
       }
     }
 
     for (let depId in this.dependencies) {
       if (!(depId in tracker.deps)) {
         this.dependencies[depId].removeDependent(this.updater);
-        console.log('removeDependent', depId, this.updater.id);
+        // console.log('removeDependent', depId, this.updater.id);
       }
     }
 

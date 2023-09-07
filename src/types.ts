@@ -103,5 +103,3 @@ export function hashValue(value: string): string {
   return CryptoJS.SHA256(value).toString();
 }
 
-const hashedValue = hashValue('yourValueHere');
-console.log(hashedValue);

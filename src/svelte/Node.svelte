@@ -14,6 +14,8 @@
   let expanded;
   $: {
     merkleNode = handlers.getMerkleOfHash(hash) || {node: {expanded: true, moves: [], notes: 'help me!'}, childHashes: []};
+    let _ignore = history; // why is this necessary???
+    // console.log('history', history, 'hash', hash, 'merkleNode', JSON.stringify(merkleNode));
   }
   $: node = merkleNode.node;
 
